@@ -120,8 +120,21 @@ function stopSpin() {
     clearInterval(spinTimer);
     spinTimer = null;
   }
-  setIcon(); // restore normal icon
+  // Restore the packaged manifest icon (icons/*.png). Passing an empty
+  // details object resets to the default_icon defined in the manifest.
+  try {
+    chrome.action.setIcon({ path: DEFAULT_ICON });
+  } catch (_) {
+    setIcon(); // fallback to the canvas-drawn icon
+  }
 }
+
+const DEFAULT_ICON = {
+  16: "icons/icon16.png",
+  32: "icons/icon32.png",
+  48: "icons/icon48.png",
+  128: "icons/icon128.png",
+};
 
 // ---- Badge (count / status) -----------------------------------------------
 function setBadge(text, color) {
