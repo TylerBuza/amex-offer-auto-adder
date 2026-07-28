@@ -166,11 +166,24 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 // Only draw on real lifecycle events, each wrapped so a failure can never
 // crash the service worker (which would make the toolbar action unresponsive).
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   try {
     setIcon();
   } catch (e) {
     console.log("[AmexAutoAdd] onInstalled icon error:", e);
+  }
+  // Enable "auto-add on visit" by default on a fresh install, without
+  // overriding a choice the user has already made on updates/reloads.
+  if (details && details.reason === "install") {
+    try {
+      chrome.storage.local.get({ enabled: null }, (res) => {
+        if (res.enabled === null || res.enabled === undefined) {
+          chrome.storage.local.set({ enabled: true });
+        }
+      });
+    } catch (e) {
+      console.log("[AmexAutoAdd] default-enable error:", e);
+    }
   }
 });
 chrome.runtime.onStartup.addListener(() => {

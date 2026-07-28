@@ -1,129 +1,117 @@
-# Amex Offer Auto-Adder
+<h1 align="center">Amex Offer Auto-Adder</h1>
 
-A Chrome (Manifest V3) extension that automatically enrolls you in **every
-eligible Amex offer across all your cards** while you're logged in. It works
-from **any** Amex page (including the dashboard) — no need to open the offers
-page or scroll.
+<p align="center">
+  A Chrome extension that instantly enrolls you in <b>every eligible Amex Offer
+  across all your cards</b> — no scrolling, no clicking through tiles.
+</p>
 
-It talks directly to Amex's own internal offers API using your logged-in
-session cookies (the same endpoints the website itself uses), so it's fast and
-doesn't depend on the page's DOM/layout.
+<p align="center">
+  <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-006fcf">
+  <img alt="Chrome" src="https://img.shields.io/badge/Chrome%20%7C%20Edge%20%7C%20Brave-supported-2e9b3f">
+  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-none-lightgrey">
+</p>
 
-## Files
+---
 
-| File            | Purpose                                                     |
-| --------------- | ----------------------------------------------------------- |
-| `manifest.json` | MV3 manifest (global + functions americanexpress hosts)      |
-| `content.js`    | Calls Amex's offers API to enroll all offers, logs history   |
-| `background.js` | Draws the toolbar icon (no binary PNGs needed)              |
-| `icon.svg`      | Source icon artwork (blue Amex square + checkmark)          |
-| `popup.html`    | Toolbar popup UI (toggle, run, stats)                       |
-| `popup.js`      | Popup logic + progress stats (today/week/month/all)         |
+Amex Offers make you add each deal to your card one tile at a time — dozens of
+them, on every card. This extension does it all in one click by talking to
+Amex's own offers API with your existing logged-in session. It works from **any**
+Amex page (the dashboard is fine), covers **every card** on your account
+including authorized-user cards, and only counts offers that were **actually
+new** to each card.
 
-## Live indicators
+## Features
 
-While a run is in progress you get two visual cues:
+- **One click, every card** — reads all your cards and enrolls every eligible
+  merchant offer, including supplementary/authorized-user cards.
+- **Works anywhere on Amex** — no need to open the Offers page or scroll.
+- **Fast** — direct API calls, not DOM automation. Hundreds of offers in
+  seconds, with randomized pacing to stay gentle.
+- **Honest counts** — de-dupes against offers already on each card, so "added"
+  means genuinely new enrollments.
+- **Live progress** — an on-page toast and an animated toolbar status wheel show
+  what's happening in real time.
+- **Stats & history** — today / week / month / all-time counters, a per-card
+  breakdown of the last run, and a log of recently added offers.
+- **Safe by default** — stops immediately on any rate-limit or logged-out
+  response instead of hammering the API.
 
-- **On-page toast** (bottom-right of the Amex tab): a blue card with a spinning
-  wheel showing live progress ("12 added · 3 skipped — <merchant>"). It turns
-  green with a ✓ when done, or red with an ✕ on error/throttling, then fades.
-- **Toolbar icon**: the icon animates a rotating status wheel while running, and
-  a **badge** shows the running count of offers added (green ✓ when finished,
-  red ! if it was rate-limited).
+## Install
 
-## Stats / progress
+> Loaded unpacked — this isn't on the Chrome Web Store.
 
-Click the toolbar icon to see how many offers you've added:
-
-- **Today / Week / Month / All** counters (week starts Monday).
-- **Last added** — exact time + relative ("2h ago").
-- **Last run by card** — how many new offers were added to each card on the
-  most recent run.
-- **Recent** — the last 15 added offers with merchant name and how long ago.
-- **Clear history** button to reset the log.
-
-Every successful add is timestamped and stored in `chrome.storage.local` under
-`history` (capped to the last 1000 entries), so stats persist across sessions
-and survive browser restarts.
-
-## Install (load unpacked)
-
-1. Download/clone this repo (or unzip a release build).
-2. Open `chrome://extensions` in Chrome (or Edge/Brave).
+1. **Download** this repo (Code → Download ZIP, or grab a
+   [release](../../releases)) and unzip it.
+2. Open `chrome://extensions` in Chrome, Edge, or Brave.
 3. Turn on **Developer mode** (top-right).
-4. Click **Load unpacked** and select the extension folder (the one containing
-   `manifest.json`).
+4. Click **Load unpacked** and select the folder containing `manifest.json`.
 5. Pin the extension so its icon shows in the toolbar.
 
-## Build a package (.zip) for the Chrome Web Store
+## Usage
 
-The store requires a zip of the extension files (with `manifest.json` at the
-root). To build one on Windows PowerShell:
-
-```powershell
-$files = "manifest.json","content.js","background.js","popup.html","popup.js","icon.svg","icons"
-Compress-Archive -Path $files -DestinationPath amex-offer-auto-adder.zip -Force
-```
-
-Then at https://chrome.google.com/webstore/devconsole (one-time $5 developer
-registration): **Add new item → upload the zip → fill listing → submit**.
-
-Note: this extension automates undocumented Amex endpoints, which violates
-Amex's ToS and may also fail Google's review for the public store. It's intended
-to be loaded unpacked / kept private.
-
-## Use
-
-1. Log in to Amex (any page — the dashboard is fine).
+1. Log in to Amex (any page — the dashboard works).
 2. Click the extension icon.
-3. Either flip **Auto-add on visit** on (runs automatically when you open an
-   Amex page) or click **Add offers now** for a one-off run.
-4. Watch the counters. The dot pulses amber while running.
+3. Click **Add offers now** for a one-off run, or flip **Auto-add on visit** on
+   to run automatically whenever you open an Amex page.
+4. Watch the toolbar status wheel and the on-page toast track progress. Open the
+   popup any time for stats and a per-card breakdown.
 
 ## How it works
 
-- Uses your logged-in session cookies (`credentials: "include"`) to call Amex's
-  own internal offers API — no DOM scraping, no scrolling.
-- `GET /api/servicing/v1/member` → collects every card's `account_token`
-  (including supplementary/authorized-user cards).
-- Per card, `POST ReadOffersHubPresentation.web.v1` with
-  `requestType: OFFERSHUB_LANDING`, walking pages `page1..page20`, keeping
-  `offerType === "MERCHANT"` offers.
-- For each offer, `POST CreateOffersHubEnrollment.web.v1` with the card's own
-  `offerId`. Success = `status.purpose === "SUCCESS"`; business rejections
-  (already added / ineligible) count as skipped.
-- Randomized **0.25–0.7 s** between offers; retries transient (5xx/network)
-  errors up to twice. **Stops immediately** on `429/403/401` or a non-JSON
-  response (signs of throttling / logged-out).
+Everything runs client-side using your own session cookies
+(`credentials: "include"`) — no passwords, no tokens, no external servers.
 
-## Tuning
+1. `GET /api/servicing/v1/member` → every card's `account_token`.
+2. Per card, `POST ReadOffersHubPresentation.web.v1`
+   (`requestType: OFFERSHUB_LANDING`), walking pages until they run out, keeping
+   `offerType === "MERCHANT"` offers.
+3. Fetch already-added offers (`ADDEDTOCARD_LANDING`) and filter them out.
+4. For each remaining offer, `POST CreateOffersHubEnrollment.web.v1` with that
+   card's own `offerId`. Success = `status.purpose === "SUCCESS"`.
 
-Edit the `CFG` object at the top of `content.js`:
+Pacing is randomized (~0.25–0.7 s between offers); transient `5xx`/network
+errors retry a couple of times, and any `429/403/401` or non-JSON response stops
+the run immediately.
 
-- `minDelay` / `maxDelay` — delay range between offers (ms). Bump up if you ever
-  get throttled.
-- `maxPages` — how many offer pages to walk per card.
-- `maxRetries` / `retryMin` / `retryMax` — transient-error retry behavior.
-- `maxEnroll` — safety cap on enrollments per run.
+## Configuration
 
-## If it stops working
+Tweak the `CFG` object at the top of [`content.js`](content.js):
 
-Amex changes these internal endpoints occasionally. If nothing gets added:
+| Option                  | What it does                                   |
+| ----------------------- | ---------------------------------------------- |
+| `minDelay` / `maxDelay` | Delay range between offers (ms). Raise if throttled. |
+| `maxPages`              | Offer pages to walk per card.                  |
+| `maxRetries`            | Retries on transient (5xx/network) errors.     |
+| `maxEnroll`             | Safety cap on enrollments per run.             |
 
-1. Open DevTools (F12) → Console on any Amex tab; look for `[AmexAutoAdd]` logs
-   (they'll show card counts, offer counts, and any "blocked"/"stopping").
-2. In DevTools → **Network**, load the offers page normally and watch for calls
-   to `ReadOffersHubPresentation.web.v1` / `CreateOffersHubEnrollment.web.v1`;
-   compare the request body/URL to the constants in `content.js` and update if
-   they changed.
+## Troubleshooting
+
+Amex changes their internal endpoints from time to time. If nothing gets added:
+
+1. Open DevTools (F12) → **Console** on an Amex tab and look for `[AmexAutoAdd]`
+   logs — they show card counts, per-card offer counts, and any "blocked" state.
+2. In the **Network** tab, load the Offers page and compare the real requests to
+   `ReadOffersHubPresentation.web.v1` / `CreateOffersHubEnrollment.web.v1`
+   against the constants in `content.js`; update if they've changed.
 3. Reload the extension on `chrome://extensions`.
 
-## Notes / caveats
+## Project layout
 
-- This automates your own logged-in account, but calling these undocumented
-  internal endpoints is a clear Terms-of-Service violation. Use at your own
-  risk. Keep delays reasonable so you don't get rate-limited or flagged; the
-  code hard-stops on throttling signals.
-- Requires host permissions for both `global.americanexpress.com` and
-  `functions.americanexpress.com` (already in the manifest).
-- The toolbar icon is drawn at runtime by `background.js` (no bundled PNGs).
+| File            | Purpose                                                |
+| --------------- | ------------------------------------------------------ |
+| `manifest.json` | MV3 manifest, permissions, icons                       |
+| `content.js`    | Reads cards & offers, enrolls, logs stats              |
+| `background.js` | Toolbar icon, animated status wheel, badge             |
+| `popup.html/js` | Popup UI: toggle, run button, stats & history          |
+| `icons/`        | Toolbar / extension icons                              |
+
+## Disclaimer
+
+For personal use on your own account. It automates undocumented American Express
+endpoints, which is against Amex's Terms of Service — use at your own risk. The
+extension is not affiliated with or endorsed by American Express.
+
+## License
+
+[MIT](LICENSE)
