@@ -17,9 +17,6 @@ const dot = $("dot");
 const statusText = $("statusText");
 const hint = $("hint");
 const clearBtn = $("clear");
-const dryRunBtn = $("dryRun");
-
-const OFFERS_URL = "https://global.americanexpress.com/offers/eligible";
 
 async function activeTab() {
   try {
@@ -36,9 +33,6 @@ function onAmex(tab) {
   return (
     tab && tab.url && tab.url.startsWith("https://global.americanexpress.com/")
   );
-}
-function onOffersUrl(tab) {
-  return tab && tab.url && tab.url.includes("/offers/eligible");
 }
 
 // Fire-and-forget message that never rejects/hangs the popup.
@@ -197,6 +191,33 @@ async function renderStats() {
 
   document.getElementById("total").textContent =
     history.length + " total added";
+
+  // Per-card breakdown from the most recent run.
+  const wrap = document.getElementById("lastRunWrap");
+  const perCardEl = document.getElementById("perCard");
+  const lastRun = (await getStorage({ lastRun: null })).lastRun;
+  if (wrap && perCardEl) {
+    if (lastRun && lastRun.perCard && lastRun.perCard.length) {
+      perCardEl.innerHTML = "";
+      for (const c of lastRun.perCard) {
+        const div = document.createElement("div");
+        div.className = "item";
+        const n = document.createElement("span");
+        n.className = "m";
+        n.textContent = c.name;
+        n.title = c.name;
+        const v = document.createElement("span");
+        v.className = "when";
+        v.textContent = "+" + c.added;
+        div.appendChild(n);
+        div.appendChild(v);
+        perCardEl.appendChild(div);
+      }
+      wrap.style.display = "";
+    } else {
+      wrap.style.display = "none";
+    }
+  }
 }
 
 // ---- Live state ------------------------------------------------------------
@@ -254,15 +275,7 @@ runNow.addEventListener("click", async () => {
   refresh();
 });
 
-dryRunBtn.addEventListener("click", async () => {
-  const tab = await activeTab();
-  if (!onAmex(tab)) return;
-  // Reports what WOULD be added without enrolling. Check the page toast and
-  // the console (F12) on the Amex tab for the full list.
-  tell(tab.id, { type: "dryRun" });
-  hint.textContent =
-    "Dry run started — watch the toast and open F12 → Console for the list.";
-});
+
 
 clearBtn.addEventListener("click", async () => {
   if (!confirm("Clear all added-offer history?")) return;

@@ -37,8 +37,9 @@ Click the toolbar icon to see how many offers you've added:
 
 - **Today / Week / Month / All** counters (week starts Monday).
 - **Last added** — exact time + relative ("2h ago").
-- **Recent** — the last 15 added offers with merchant name (when detectable)
-  and how long ago.
+- **Last run by card** — how many new offers were added to each card on the
+  most recent run.
+- **Recent** — the last 15 added offers with merchant name and how long ago.
 - **Clear history** button to reset the log.
 
 Every successful add is timestamped and stored in `chrome.storage.local` under
@@ -47,11 +48,29 @@ and survive browser restarts.
 
 ## Install (load unpacked)
 
-1. Open `chrome://extensions` in Chrome (or Edge/Brave).
-2. Turn on **Developer mode** (top-right).
-3. Click **Load unpacked** and select this folder
-   (`C:\Users\tyler\Documents\Nword`).
-4. Pin the extension so its icon shows in the toolbar.
+1. Download/clone this repo (or unzip a release build).
+2. Open `chrome://extensions` in Chrome (or Edge/Brave).
+3. Turn on **Developer mode** (top-right).
+4. Click **Load unpacked** and select the extension folder (the one containing
+   `manifest.json`).
+5. Pin the extension so its icon shows in the toolbar.
+
+## Build a package (.zip) for the Chrome Web Store
+
+The store requires a zip of the extension files (with `manifest.json` at the
+root). To build one on Windows PowerShell:
+
+```powershell
+$files = "manifest.json","content.js","background.js","popup.html","popup.js","icon.svg","icons"
+Compress-Archive -Path $files -DestinationPath amex-offer-auto-adder.zip -Force
+```
+
+Then at https://chrome.google.com/webstore/devconsole (one-time $5 developer
+registration): **Add new item → upload the zip → fill listing → submit**.
+
+Note: this extension automates undocumented Amex endpoints, which violates
+Amex's ToS and may also fail Google's review for the public store. It's intended
+to be loaded unpacked / kept private.
 
 ## Use
 

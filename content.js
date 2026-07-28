@@ -35,7 +35,6 @@
   // ---- State -----------------------------------------------------------------
   let enabled = false;
   let running = false;
-  let dryRun = false; // diagnose mode: report what WOULD be added, don't enroll
   const stats = { added: 0, skipped: 0, failed: 0 };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -279,12 +278,11 @@
 
       let enrolled = 0;
       let cardIdx = 0;
+      const perCard = []; // [{ name, added }]
       for (const card of cards) {
         if (!enabled) break;
         cardIdx++;
-        Overlay.update(
-          `Reading ${card.name} (${cardIdx}/${cards.length})…`
-        );
+        Overlay.update(`Reading ${card.name} (${cardIdx}/${cards.length})…`);
         let offers;
         try {
           offers = await fetchEligibleOffers(card.token);
@@ -297,6 +295,12 @@
           continue;
         }
 
+        // Nothing eligible on this card — skip the extra "added" request.
+        if (offers.length === 0) {
+          log(`${card.name}: 0 eligible offers, skipping.`);
+          continue;
+        }
+
         // Skip offers already on this card so the count reflects NEW adds only.
         const added = await fetchAddedOffers(card.token);
         const addedKeys = new Set(added.map(offerKey));
@@ -306,28 +310,11 @@
           `${card.name}: ${before} eligible, ${added.length} already added, ` +
             `${offers.length} new to add.`
         );
-        if (offers.length) {
-          log(
-            "New offers:",
-            offers.map((o) => offerName(o)).join(" | ")
-          );
-        }
+        if (offers.length === 0) continue;
 
+        let cardAdded = 0;
         for (const offer of offers) {
           if (!enabled || enrolled >= CFG.maxEnroll) break;
-
-          if (dryRun) {
-            // Diagnose mode: report what WOULD be added, don't enroll.
-            enrolled++;
-            stats.added++;
-            recordAddPreview(offerName(offer), card.name);
-            pushStats();
-            Overlay.update(
-              `[DRY RUN] would add ${stats.added} — ${offerName(offer)}`
-            );
-            setBadge(String(stats.added), "#e8a400");
-            continue;
-          }
 
           let ok = false;
           let blocked = false;
@@ -364,6 +351,7 @@
           enrolled++;
           if (ok) {
             stats.added++;
+            cardAdded++;
             recordAdd(offerName(offer), card.name);
           } else {
             stats.skipped++; // business rejection (e.g. already added/ineligible)
@@ -377,30 +365,33 @@
 
           await sleep(rand(CFG.minDelay, CFG.maxDelay));
         }
+
+        if (cardAdded > 0) perCard.push({ name: card.name, added: cardAdded });
       }
 
       log(
         `Done. Added ${stats.added}, skipped ${stats.skipped}, ` +
           `failed ${stats.failed}.`
       );
+      // Persist the per-card breakdown for this run so the popup can show it.
+      try {
+        chrome.storage.local.set({
+          lastRun: { at: Date.now(), added: stats.added, perCard },
+        });
+      } catch (_) {}
+
       if (enabled) {
-        if (dryRun) {
-          Overlay.finish(
-            "done",
-            `Dry run: ${stats.added} new offer(s) to add`,
-            stats.added
-              ? "Nothing was enrolled. Check console for the list."
-              : "You're already enrolled in everything eligible."
-          );
-          setBadge(stats.added ? String(stats.added) : "0", "#e8a400");
-        } else {
-          Overlay.finish(
-            "done",
-            stats.added ? "Offers added!" : "Nothing new to add",
-            `${stats.added} new · ${stats.skipped} already/ineligible`
-          );
-          setBadge(stats.added ? String(stats.added) : "✓", "#2e9b3f");
-        }
+        const breakdown = perCard
+          .map((c) => `${c.name}: ${c.added}`)
+          .join(" · ");
+        Overlay.finish(
+          "done",
+          stats.added ? "Offers added!" : "Nothing new to add",
+          stats.added
+            ? breakdown || `${stats.added} new`
+            : "You're already enrolled in everything eligible."
+        );
+        setBadge(stats.added ? String(stats.added) : "✓", "#2e9b3f");
       }
     } catch (e) {
       log("Error:", e);
@@ -444,31 +435,16 @@
       });
     } catch (_) {}
   }
-  // Dry-run: only log to console, never touch persistent history.
-  function recordAddPreview(merchant, card) {
-    log(`[DRY RUN] would add: "${merchant}" on ${card}`);
-  }
-
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "getState") {
-      sendResponse({ enabled, running, dryRun, stats, onOffersPage: true });
+      sendResponse({ enabled, running, stats, onOffersPage: true });
     } else if (msg.type === "setEnabled") {
       enabled = msg.value;
       chrome.storage.local.set({ enabled });
-      if (enabled) {
-        dryRun = false;
-        run();
-      }
+      if (enabled) run();
       sendResponse({ ok: true });
     } else if (msg.type === "runNow") {
       enabled = true;
-      dryRun = false;
-      run();
-      sendResponse({ ok: true });
-    } else if (msg.type === "dryRun") {
-      // Diagnose: read + report what WOULD be added, enroll nothing.
-      enabled = true;
-      dryRun = true;
       run();
       sendResponse({ ok: true });
     }
