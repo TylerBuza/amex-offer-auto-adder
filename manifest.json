@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Amex Offer Auto-Adder",
+  "version": "1.1.0",
+  "description": "Automatically adds eligible Amex offers to your card when you visit the offers page while logged in.",
+  "permissions": ["storage", "scripting", "tabs"],
+  "host_permissions": [
+    "https://global.americanexpress.com/*",
+    "https://functions.americanexpress.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Amex Offer Auto-Adder"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://global.americanexpress.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

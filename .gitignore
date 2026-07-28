@@ -1,0 +1,12 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Local build artifacts
+*.zip
+*.crx
+*.pem
+node_modules/
