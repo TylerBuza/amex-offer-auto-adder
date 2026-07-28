@@ -231,7 +231,29 @@ function renderLive(state) {
     : "Disabled";
 }
 
+async function renderUpdateBanner() {
+  const banner = document.getElementById("updateBanner");
+  if (!banner) return;
+  const { updateInfo } = await getStorage({ updateInfo: null });
+  if (updateInfo && updateInfo.latest) {
+    const verEl = document.getElementById("updateVer");
+    const curEl = document.getElementById("currentVer");
+    const link = document.getElementById("updateLink");
+    if (verEl) verEl.textContent = "v" + updateInfo.latest;
+    if (curEl) curEl.textContent = "v" + updateInfo.current;
+    if (link) link.href = updateInfo.url;
+    banner.style.display = "flex";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
 async function refresh() {
+  try {
+    await renderUpdateBanner();
+  } catch (e) {
+    console.log("[AmexAutoAdd] update banner failed:", e);
+  }
   try {
     await renderStats();
   } catch (e) {

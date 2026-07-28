@@ -105,6 +105,30 @@
         color: #888;
         margin-top: 8px;
       }
+      .update-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: #fff8e1;
+        border-bottom: 1px solid #f0e0a8;
+        color: #7a5c00;
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+      .update-banner b {
+        color: #5a4400;
+      }
+      .update-banner a {
+        flex: none;
+        background: #e8a400;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
       hr {
         border: 0;
         border-top: 1px solid #eee;
@@ -198,6 +222,13 @@
   </head>
   <body>
     <header>Amex Offer Auto-Adder</header>
+    <div class="update-banner" id="updateBanner">
+      <span
+        >Update available: <b id="updateVer">v?</b> — you have
+        <span id="currentVer">?</span></span
+      >
+      <a id="updateLink" href="#" target="_blank" rel="noopener">Get it</a>
+    </div>
     <div class="body">
       <div class="row">
         <span>Auto-add on visit</span>

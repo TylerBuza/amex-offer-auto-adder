@@ -185,6 +185,13 @@ chrome.runtime.onInstalled.addListener((details) => {
       console.log("[AmexAutoAdd] default-enable error:", e);
     }
   }
+  // A fresh manifest version is installed; clear any old update banner and
+  // (re)schedule the background update checks.
+  try {
+    chrome.storage.local.remove(["updateInfo"]);
+  } catch (_) {}
+  scheduleUpdateChecks();
+  checkForUpdate();
 });
 chrome.runtime.onStartup.addListener(() => {
   try {
@@ -192,4 +199,101 @@ chrome.runtime.onStartup.addListener(() => {
   } catch (e) {
     console.log("[AmexAutoAdd] onStartup icon error:", e);
   }
+  checkForUpdate();
+});
+
+// ---- Update checker --------------------------------------------------------
+// Periodically asks GitHub for the latest release. If it's newer than the
+// installed version, stores update info (so the popup can show a banner) and
+// fires a one-time desktop notification linking to the release.
+const GITHUB_REPO = "TylerBuza/amex-offer-auto-adder";
+const LATEST_RELEASE_API =
+  "https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest";
+const RELEASES_PAGE = "https://github.com/" + GITHUB_REPO + "/releases/latest";
+const UPDATE_ALARM = "amexAutoAdd_updateCheck";
+
+// Compare dotted versions: returns true if `a` is strictly newer than `b`.
+function isNewer(a, b) {
+  const pa = String(a).replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const x = pa[i] || 0;
+    const y = pb[i] || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
+
+async function checkForUpdate() {
+  try {
+    const current = chrome.runtime.getManifest().version;
+    const res = await fetch(LATEST_RELEASE_API, {
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) return; // no releases yet, rate-limited, offline, etc.
+    const data = await res.json();
+    const tag = data.tag_name || data.name || "";
+    const latest = tag.replace(/^v/i, "");
+    if (!latest) return;
+
+    if (isNewer(latest, current)) {
+      const url = data.html_url || RELEASES_PAGE;
+      const info = {
+        latest,
+        current,
+        url,
+        notes: (data.body || "").slice(0, 400),
+        checkedAt: Date.now(),
+      };
+      chrome.storage.local.set({ updateInfo: info });
+
+      // Notify once per new version (avoid nagging every check).
+      chrome.storage.local.get({ notifiedVersion: "" }, (r) => {
+        if (r.notifiedVersion === latest) return;
+        chrome.storage.local.set({ notifiedVersion: latest });
+        try {
+          chrome.notifications.create("amexAutoAdd_update_" + latest, {
+            type: "basic",
+            iconUrl: "icons/icon128.png",
+            title: "Amex Offer Auto-Adder — update available",
+            message: `Version ${latest} is out (you have ${current}). Click to view the release.`,
+            priority: 1,
+          });
+        } catch (_) {}
+      });
+    } else {
+      // Up to date: clear any stale banner.
+      chrome.storage.local.remove("updateInfo");
+    }
+  } catch (_) {
+    /* offline / transient — try again next alarm */
+  }
+}
+
+// Clicking the notification opens the release page.
+chrome.notifications.onClicked.addListener((id) => {
+  if (id && id.startsWith("amexAutoAdd_update_")) {
+    chrome.storage.local.get({ updateInfo: null }, (r) => {
+      const url = (r.updateInfo && r.updateInfo.url) || RELEASES_PAGE;
+      chrome.tabs.create({ url });
+      try {
+        chrome.notifications.clear(id);
+      } catch (_) {}
+    });
+  }
+});
+
+// Schedule periodic checks (every 12h) and run one shortly after install.
+function scheduleUpdateChecks() {
+  try {
+    chrome.alarms.create(UPDATE_ALARM, {
+      delayInMinutes: 1,
+      periodInMinutes: 720,
+    });
+  } catch (_) {}
+}
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm && alarm.name === UPDATE_ALARM) checkForUpdate();
 });

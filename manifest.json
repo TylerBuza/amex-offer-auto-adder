@@ -3,10 +3,11 @@
   "name": "Amex Offer Auto-Adder",
   "version": "1.4.0",
   "description": "Auto-enrolls you in every eligible Amex offer across all your cards while logged in. Works from any Amex page.",
-  "permissions": ["storage", "scripting", "tabs"],
+  "permissions": ["storage", "scripting", "tabs", "alarms", "notifications"],
   "host_permissions": [
     "https://global.americanexpress.com/*",
-    "https://functions.americanexpress.com/*"
+    "https://functions.americanexpress.com/*",
+    "https://api.github.com/*"
   ],
   "icons": {
     "16": "icons/icon16.png",
