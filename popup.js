@@ -17,6 +17,7 @@ const dot = $("dot");
 const statusText = $("statusText");
 const hint = $("hint");
 const clearBtn = $("clear");
+const dryRunBtn = $("dryRun");
 
 const OFFERS_URL = "https://global.americanexpress.com/offers/eligible";
 
@@ -251,6 +252,16 @@ runNow.addEventListener("click", async () => {
   tell(tab.id, { type: "setEnabled", value: true });
   tell(tab.id, { type: "runNow" });
   refresh();
+});
+
+dryRunBtn.addEventListener("click", async () => {
+  const tab = await activeTab();
+  if (!onAmex(tab)) return;
+  // Reports what WOULD be added without enrolling. Check the page toast and
+  // the console (F12) on the Amex tab for the full list.
+  tell(tab.id, { type: "dryRun" });
+  hint.textContent =
+    "Dry run started — watch the toast and open F12 → Console for the list.";
 });
 
 clearBtn.addEventListener("click", async () => {

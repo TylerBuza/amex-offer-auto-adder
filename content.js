@@ -35,6 +35,7 @@
   // ---- State -----------------------------------------------------------------
   let enabled = false;
   let running = false;
+  let dryRun = false; // diagnose mode: report what WOULD be added, don't enroll
   const stats = { added: 0, skipped: 0, failed: 0 };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -215,6 +216,22 @@
     return offers;
   }
 
+  // Offers already added to this card (ADDEDTOCARD_LANDING, single page).
+  async function fetchAddedOffers(token) {
+    try {
+      const data = await readOffersHub(token, "ADDEDTOCARD_LANDING");
+      const items = getPath(data, "addedToCardViewAll.offersList.page1");
+      return Array.isArray(items) ? items : [];
+    } catch (e) {
+      log("Could not read added offers:", e.message);
+      return [];
+    }
+  }
+
+  function offerKey(offer) {
+    return offer.pznAnalyticsId || offer.offerId;
+  }
+
   function enrollOffer(token, offerId) {
     return postJson(ENROLL_URL, {
       accountNumberProxy: token,
@@ -279,10 +296,38 @@
           log("Read failed for card, skipping:", card.name, e.message);
           continue;
         }
-        log(`${card.name}: ${offers.length} eligible offer(s).`);
+
+        // Skip offers already on this card so the count reflects NEW adds only.
+        const added = await fetchAddedOffers(card.token);
+        const addedKeys = new Set(added.map(offerKey));
+        const before = offers.length;
+        offers = offers.filter((o) => !addedKeys.has(offerKey(o)));
+        log(
+          `${card.name}: ${before} eligible, ${added.length} already added, ` +
+            `${offers.length} new to add.`
+        );
+        if (offers.length) {
+          log(
+            "New offers:",
+            offers.map((o) => offerName(o)).join(" | ")
+          );
+        }
 
         for (const offer of offers) {
           if (!enabled || enrolled >= CFG.maxEnroll) break;
+
+          if (dryRun) {
+            // Diagnose mode: report what WOULD be added, don't enroll.
+            enrolled++;
+            stats.added++;
+            recordAddPreview(offerName(offer), card.name);
+            pushStats();
+            Overlay.update(
+              `[DRY RUN] would add ${stats.added} — ${offerName(offer)}`
+            );
+            setBadge(String(stats.added), "#e8a400");
+            continue;
+          }
 
           let ok = false;
           let blocked = false;
@@ -339,12 +384,23 @@
           `failed ${stats.failed}.`
       );
       if (enabled) {
-        Overlay.finish(
-          "done",
-          "All offers added!",
-          `${stats.added} added · ${stats.skipped} already/ineligible`
-        );
-        setBadge(stats.added ? String(stats.added) : "✓", "#2e9b3f");
+        if (dryRun) {
+          Overlay.finish(
+            "done",
+            `Dry run: ${stats.added} new offer(s) to add`,
+            stats.added
+              ? "Nothing was enrolled. Check console for the list."
+              : "You're already enrolled in everything eligible."
+          );
+          setBadge(stats.added ? String(stats.added) : "0", "#e8a400");
+        } else {
+          Overlay.finish(
+            "done",
+            stats.added ? "Offers added!" : "Nothing new to add",
+            `${stats.added} new · ${stats.skipped} already/ineligible`
+          );
+          setBadge(stats.added ? String(stats.added) : "✓", "#2e9b3f");
+        }
       }
     } catch (e) {
       log("Error:", e);
@@ -388,17 +444,31 @@
       });
     } catch (_) {}
   }
+  // Dry-run: only log to console, never touch persistent history.
+  function recordAddPreview(merchant, card) {
+    log(`[DRY RUN] would add: "${merchant}" on ${card}`);
+  }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "getState") {
-      sendResponse({ enabled, running, stats, onOffersPage: true });
+      sendResponse({ enabled, running, dryRun, stats, onOffersPage: true });
     } else if (msg.type === "setEnabled") {
       enabled = msg.value;
       chrome.storage.local.set({ enabled });
-      if (enabled) run();
+      if (enabled) {
+        dryRun = false;
+        run();
+      }
       sendResponse({ ok: true });
     } else if (msg.type === "runNow") {
       enabled = true;
+      dryRun = false;
+      run();
+      sendResponse({ ok: true });
+    } else if (msg.type === "dryRun") {
+      // Diagnose: read + report what WOULD be added, enroll nothing.
+      enabled = true;
+      dryRun = true;
       run();
       sendResponse({ ok: true });
     }
