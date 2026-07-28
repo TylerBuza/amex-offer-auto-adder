@@ -17,6 +17,8 @@ const dot = $("dot");
 const statusText = $("statusText");
 const hint = $("hint");
 const clearBtn = $("clear");
+const headsUpToggle = $("headsUpToggle");
+const cacheInfo = $("cacheInfo");
 
 async function activeTab() {
   try {
@@ -248,7 +250,28 @@ async function renderUpdateBanner() {
   }
 }
 
+async function renderHeadsUp() {
+  const { headsUpEnabled, catalogCount, catalogUpdatedAt } = await getStorage({
+    headsUpEnabled: true,
+    catalogCount: 0,
+    catalogUpdatedAt: 0,
+  });
+  headsUpToggle.checked = headsUpEnabled !== false;
+  if (catalogCount > 0) {
+    const ago = catalogUpdatedAt ? " · updated " + timeAgo(catalogUpdatedAt) : "";
+    cacheInfo.textContent = `${catalogCount} merchant offer(s) cached${ago}`;
+  } else {
+    cacheInfo.textContent =
+      "Run once to cache offers, then get a heads-up on merchant sites.";
+  }
+}
+
 async function refresh() {
+  try {
+    await renderHeadsUp();
+  } catch (e) {
+    console.log("[AmexAutoAdd] headsUp render failed:", e);
+  }
   try {
     await renderUpdateBanner();
   } catch (e) {
@@ -285,6 +308,15 @@ toggle.addEventListener("change", async () => {
   const tab = await activeTab();
   if (onAmex(tab)) tell(tab.id, { type: "setEnabled", value });
   refresh();
+});
+
+headsUpToggle.addEventListener("change", async () => {
+  const value = headsUpToggle.checked;
+  await chrome.storage.local.set({ headsUpEnabled: value });
+  // Ask the service worker to (un)register the merchant heads-up script.
+  try {
+    chrome.runtime.sendMessage({ type: "catalogUpdated" });
+  } catch (_) {}
 });
 
 runNow.addEventListener("click", async () => {

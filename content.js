@@ -253,6 +253,134 @@
     return (offer.title || offer.name || "Offer").toString().slice(0, 80);
   }
 
+  // A short human "deal" line, e.g. "Spend $200, earn $75 back".
+  function offerDetail(offer) {
+    const s =
+      offer.shortDescription ||
+      offer.longDescription ||
+      getPath(offer, "terms.details") ||
+      "";
+    return String(s).replace(/\s+/g, " ").trim().slice(0, 140);
+  }
+
+  function offerExpiry(offer) {
+    return String(getPath(offer, "expiration.text") || offer.expirationDate || "")
+      .trim()
+      .slice(0, 40);
+  }
+
+  // ---- Merchant domain extraction --------------------------------------------
+  // A tiny map for common name→domain mismatches (kept intentionally small).
+  const DOMAIN_OVERRIDES = {
+    "weight watchers": "ww.com",
+    "ancestrydna kits": "ancestry.com",
+    "ancestrydna": "ancestry.com",
+  };
+
+  const COMMON_WORDS = new Set([
+    "select",
+    "merchants",
+    "online",
+    "the",
+    "and",
+    "for",
+    "your",
+    "card",
+    "offer",
+    "amex",
+  ]);
+
+  // Reduce any host to its registrable domain-ish form: lowercase, strip
+  // "www.", and keep the last two labels (good enough for .com/.net/.org/.co).
+  function registrable(host) {
+    if (!host) return "";
+    host = String(host).toLowerCase().replace(/^www\./, "");
+    const parts = host.split(".").filter(Boolean);
+    if (parts.length <= 2) return parts.join(".");
+    // Handle a few common two-part TLDs.
+    const twoPartTld = /\.(co|com|org|net|gov|ac)\.[a-z]{2}$/;
+    if (twoPartTld.test(host)) return parts.slice(-3).join(".");
+    return parts.slice(-2).join(".");
+  }
+
+  const DOMAIN_RE =
+    /\b((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|net|org|co|us|shop|store|io|app))\b/gi;
+
+  // Returns [{ host, confidence }] for an offer, best first.
+  function deriveDomains(offer) {
+    const out = new Map(); // host -> confidence rank (higher = better)
+    const add = (host, conf) => {
+      const h = registrable(host);
+      if (!h || h.length < 4) return;
+      if (!out.has(h) || out.get(h) < conf) out.set(h, conf);
+    };
+
+    const title = String(offer.title || offer.name || "");
+    const text = [
+      getPath(offer, "terms.details") || "",
+      offer.longDescription || "",
+      offer.shortDescription || "",
+    ].join(" ");
+
+    // 1) "online at <domain>" / "at <domain> by" — strongest signal.
+    const strong = /\b(?:online at|visit|at)\s+((?:[a-z0-9-]+\.)+[a-z]{2,})/gi;
+    let m;
+    while ((m = strong.exec(text))) add(m[1], 5);
+
+    // 2) Any bare domain anywhere in the terms/description.
+    let d;
+    while ((d = DOMAIN_RE.exec(text))) add(d[1], 4);
+
+    // 3) Title that is literally a domain (e.g. "FragranceNet.com").
+    DOMAIN_RE.lastIndex = 0;
+    let t;
+    while ((t = DOMAIN_RE.exec(title))) add(t[1], 5);
+
+    // 4) Overrides map by normalized name.
+    const key = title.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+    if (DOMAIN_OVERRIDES[key]) add(DOMAIN_OVERRIDES[key], 5);
+
+    // 5) Slug heuristic (low confidence): "Glasses USA" -> glassesusa.com.
+    if (out.size === 0) {
+      const words = key.split(/\s+/).filter((w) => w && !COMMON_WORDS.has(w));
+      if (words.length) add(words.join("") + ".com", 1);
+    }
+
+    return [...out.entries()]
+      .map(([host, confidence]) => ({ host, confidence }))
+      .sort((a, b) => b.confidence - a.confidence);
+  }
+
+  // Accumulates the offer catalog (domain -> [entries]) across a run.
+  const catalog = {};
+  function addToCatalog(offer, card, enrolled) {
+    const domains = deriveDomains(offer);
+    if (!domains.length) return;
+    const entry = {
+      name: offerName(offer),
+      detail: offerDetail(offer),
+      expiry: offerExpiry(offer),
+      card: card.name,
+      offerId: offer.offerId,
+      token: card.token,
+      enrolled: !!enrolled,
+      confidence: domains[0].confidence,
+    };
+    for (const { host } of domains) {
+      (catalog[host] = catalog[host] || []).push(entry);
+    }
+  }
+
+  function saveCatalog() {
+    try {
+      chrome.storage.local.set({
+        offerCatalog: catalog,
+        catalogUpdatedAt: Date.now(),
+        catalogCount: Object.keys(catalog).length,
+      });
+    } catch (_) {}
+  }
+
   // ---- Main run --------------------------------------------------------------
   async function run() {
     if (running) return;
@@ -276,6 +404,9 @@
         return;
       }
 
+      // Reset the merchant-offer catalog for this fresh run.
+      for (const k of Object.keys(catalog)) delete catalog[k];
+
       let enrolled = 0;
       let cardIdx = 0;
       const perCard = []; // [{ name, added }]
@@ -295,17 +426,23 @@
           continue;
         }
 
-        // Nothing eligible on this card — skip the extra "added" request.
+        // Always read the already-added set so we can (a) skip re-enrolling and
+        // (b) catalog those offers for the merchant heads-up feature.
+        const added = await fetchAddedOffers(card.token);
+        for (const o of added) addToCatalog(o, card, true);
+
+        // Nothing eligible on this card — done with it after cataloging added.
         if (offers.length === 0) {
-          log(`${card.name}: 0 eligible offers, skipping.`);
+          log(`${card.name}: 0 eligible offers.`);
           continue;
         }
 
         // Skip offers already on this card so the count reflects NEW adds only.
-        const added = await fetchAddedOffers(card.token);
         const addedKeys = new Set(added.map(offerKey));
         const before = offers.length;
         offers = offers.filter((o) => !addedKeys.has(offerKey(o)));
+        // Catalog the still-eligible (not-added) offers too.
+        for (const o of offers) addToCatalog(o, card, false);
         log(
           `${card.name}: ${before} eligible, ${added.length} already added, ` +
             `${offers.length} new to add.`
@@ -379,6 +516,16 @@
           lastRun: { at: Date.now(), added: stats.added, perCard },
         });
       } catch (_) {}
+
+      // Save the merchant-offer catalog and ask the SW to (re)register the
+      // per-domain heads-up content script for the new domain set.
+      saveCatalog();
+      try {
+        chrome.runtime.sendMessage({ type: "catalogUpdated" });
+      } catch (_) {}
+      log(
+        `Catalog: ${Object.keys(catalog).length} merchant domain(s) cached.`
+      );
 
       if (enabled) {
         const breakdown = perCard

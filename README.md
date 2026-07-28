@@ -34,6 +34,10 @@ new** to each card.
   what's happening in real time.
 - **Stats & history** — today / week / month / all-time counters, a per-card
   breakdown of the last run, and a log of recently added offers.
+- **Merchant heads-up** — after a run caches your offers, visiting a merchant's
+  website (e.g. `glassesusa.com`) pops a small "Amex Offer available here" card
+  with the deal, the card it's on, and an **Add to card now** button if you
+  haven't enrolled yet.
 - **Safe by default** — stops immediately on any rate-limit or logged-out
   response instead of hammering the API.
 

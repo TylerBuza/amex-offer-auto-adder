@@ -151,18 +151,124 @@ function scheduleBadgeClear(ms) {
   badgeClearTimer = setTimeout(() => setBadge("", "#006fcf"), ms);
 }
 
-// ---- Messages from content script ------------------------------------------
-chrome.runtime.onMessage.addListener((msg) => {
+// ---- Single-offer enrollment (for the merchant "Add now" button) -----------
+// The merchant heads-up runs on non-Amex sites and can't call Amex with your
+// cookies. The service worker can (broad host_permissions + credentials).
+const ENROLL_URL_BG =
+  "https://functions.americanexpress.com/CreateOffersHubEnrollment.web.v1";
+
+async function enrollOneOffer(token, offerId) {
+  const res = await fetch(ENROLL_URL_BG, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      accountNumberProxy: token,
+      offerId,
+      locale: "en-US",
+      enrollmentTrigger: "OFFERSHUB_TILE",
+      requestType: "OFFERSHUB_ENROLLMENT",
+      synchronizeOnly: false,
+      offerUnencrypted: false,
+    }),
+  });
+  if (!res.ok) return { ok: false, reason: "http_" + res.status };
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return { ok: false, reason: "not_logged_in" };
+  }
+  const ok =
+    String((data.status && data.status.purpose) || "").toUpperCase() ===
+    "SUCCESS";
+  return { ok, reason: ok ? "" : "rejected" };
+}
+
+// ---- Messages from content scripts -----------------------------------------
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg) return;
   if (msg.type === "state") {
     if (msg.state === "run") startSpin();
     else stopSpin();
   } else if (msg.type === "badge") {
     setBadge(msg.text, msg.color);
-    // If it's a terminal state marker, clear it after a bit.
     if (msg.text === "✓" || msg.text === "!") scheduleBadgeClear(8000);
+  } else if (msg.type === "catalogUpdated") {
+    registerMerchantNotice();
+  } else if (msg.type === "enrollOne") {
+    // Async: keep the message channel open with `return true`.
+    enrollOneOffer(msg.token, msg.offerId)
+      .then((r) => {
+        if (r.ok) markEnrolledInCatalog(msg.offerId);
+        sendResponse(r);
+      })
+      .catch((e) => sendResponse({ ok: false, reason: String(e && e.message) }));
+    return true;
   }
 });
+
+// Flip an offer's cached "enrolled" flag after a successful Add-now.
+function markEnrolledInCatalog(offerId) {
+  try {
+    chrome.storage.local.get({ offerCatalog: {} }, (res) => {
+      const cat = res.offerCatalog || {};
+      let changed = false;
+      for (const host of Object.keys(cat)) {
+        for (const e of cat[host]) {
+          if (e.offerId === offerId && !e.enrolled) {
+            e.enrolled = true;
+            changed = true;
+          }
+        }
+      }
+      if (changed) chrome.storage.local.set({ offerCatalog: cat });
+    });
+  } catch (_) {}
+}
+
+// ---- Merchant heads-up content-script registration -------------------------
+// Registers merchant-notice.js only on the domains present in the catalog,
+// so it doesn't run on every site unnecessarily.
+async function registerMerchantNotice() {
+  try {
+    const { offerCatalog, headsUpEnabled } = await new Promise((res) =>
+      chrome.storage.local.get(
+        { offerCatalog: {}, headsUpEnabled: true },
+        res
+      )
+    );
+    // Remove any previous registration first.
+    try {
+      await chrome.scripting.unregisterContentScripts({
+        ids: ["amexMerchantNotice"],
+      });
+    } catch (_) {}
+
+    const domains = Object.keys(offerCatalog || {});
+    if (!headsUpEnabled || domains.length === 0) return;
+
+    const matches = domains.map((d) => `*://*.${d}/*`);
+    // Also match the bare domain (no subdomain).
+    for (const d of domains) matches.push(`*://${d}/*`);
+
+    await chrome.scripting.registerContentScripts([
+      {
+        id: "amexMerchantNotice",
+        js: ["merchant-notice.js"],
+        matches,
+        runAt: "document_idle",
+        persistAcrossSessions: true,
+      },
+    ]);
+  } catch (e) {
+    console.log("[AmexAutoAdd] registerMerchantNotice error:", e);
+  }
+}
 
 // Only draw on real lifecycle events, each wrapped so a failure can never
 // crash the service worker (which would make the toolbar action unresponsive).
@@ -192,6 +298,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   } catch (_) {}
   scheduleUpdateChecks();
   checkForUpdate(true); // force one check right after install/update
+  registerMerchantNotice(); // re-establish heads-up script on update/install
 });
 chrome.runtime.onStartup.addListener(() => {
   try {
@@ -200,6 +307,7 @@ chrome.runtime.onStartup.addListener(() => {
     console.log("[AmexAutoAdd] onStartup icon error:", e);
   }
   checkForUpdate();
+  registerMerchantNotice();
 });
 
 // ---- Update checker --------------------------------------------------------
