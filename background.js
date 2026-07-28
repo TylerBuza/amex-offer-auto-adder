@@ -226,7 +226,7 @@ function isNewer(a, b) {
   return false;
 }
 
-const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
+const CHECK_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12h
 
 async function checkForUpdate(force) {
   try {
@@ -298,12 +298,12 @@ chrome.notifications.onClicked.addListener((id) => {
   }
 });
 
-// Schedule periodic checks (once every 24h) and run one shortly after install.
+// Schedule periodic checks (every 12h) and run one shortly after install.
 function scheduleUpdateChecks() {
   try {
     chrome.alarms.create(UPDATE_ALARM, {
       delayInMinutes: 1,
-      periodInMinutes: 1440,
+      periodInMinutes: 720,
     });
   } catch (_) {}
 }
