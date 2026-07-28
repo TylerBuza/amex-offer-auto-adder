@@ -43,14 +43,25 @@ new** to each card.
 
 ## Install
 
-> Loaded unpacked — this isn't on the Chrome Web Store.
+> Loaded unpacked — not on any extension store. Chrome and Firefox both
+> supported. Grab the matching zip from the [latest release](../../releases/latest).
 
-1. **Download** this repo (Code → Download ZIP, or grab a
-   [release](../../releases)) and unzip it.
-2. Open `chrome://extensions` in Chrome, Edge, or Brave.
+### Chrome / Edge / Brave
+
+1. Download `amex-offer-auto-adder-vX.Y.Z.zip` from the latest release and unzip it.
+2. Open `chrome://extensions`.
 3. Turn on **Developer mode** (top-right).
-4. Click **Load unpacked** and select the folder containing `manifest.json`.
-5. Pin the extension so its icon shows in the toolbar.
+4. Click **Load unpacked** and select the unzipped folder (the one with `manifest.json`).
+5. Pin the extension.
+
+### Firefox
+
+1. Download `amex-offer-auto-adder-firefox-vX.Y.Z.zip` from the latest release and unzip it.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and select the `manifest.json` inside the unzipped folder.
+4. (Temporary loads clear when Firefox closes; for a permanent install the add-on must be signed via AMO.)
+
+The Firefox build lives in the [`firefox/`](firefox) folder of this repo.
 
 ## Usage
 

@@ -1,0 +1,217 @@
+/* Amex Offer Auto-Adder — merchant heads-up
+ *
+ * Runs on merchant websites (registered dynamically for domains that appear in
+ * your cached Amex offer catalog). If the current site matches an offer you
+ * have — or one you're eligible for but haven't added — it shows a small
+ * bottom-right card. Eligible-but-not-added offers get an "Add now" button.
+ *
+ * No data leaves your machine; matching is done against locally cached offers.
+ */
+
+(() => {
+  "use strict";
+  if (window.__amexMerchantNoticeLoaded) return;
+  window.__amexMerchantNoticeLoaded = true;
+
+  function registrable(host) {
+    if (!host) return "";
+    host = String(host).toLowerCase().replace(/^www\./, "");
+    const parts = host.split(".").filter(Boolean);
+    if (parts.length <= 2) return parts.join(".");
+    if (/\.(co|com|org|net|gov|ac)\.[a-z]{2}$/.test(host))
+      return parts.slice(-3).join(".");
+    return parts.slice(-2).join(".");
+  }
+
+  const currentDomain = registrable(location.hostname);
+  if (!currentDomain) return;
+
+  chrome.storage.local.get(
+    { offerCatalog: {}, headsUpEnabled: true, headsUpDismissed: {} },
+    (res) => {
+      if (!res.headsUpEnabled) return;
+      const entries = (res.offerCatalog || {})[currentDomain];
+      if (!entries || !entries.length) return;
+
+      // Permanently dismissed for this domain ("forever").
+      if (res.headsUpDismissed && res.headsUpDismissed[currentDomain]) return;
+
+      // Dismissed for this browser session (per-tab sessionStorage).
+      try {
+        if (sessionStorage.getItem("amexHeadsUpDismissed") === currentDomain)
+          return;
+      } catch (_) {}
+
+      // Prefer showing a not-yet-added offer (actionable) over an enrolled one.
+      const notAdded = entries.filter((e) => !e.enrolled);
+      const primary = (notAdded[0] || entries[0]);
+      showCard(primary, entries.length);
+    }
+  );
+
+  function showCard(offer, total) {
+    const wrap = document.createElement("div");
+    wrap.id = "amex-merchant-notice";
+    const added = offer.enrolled;
+    const lowConf = offer.confidence && offer.confidence <= 1;
+
+    wrap.innerHTML = `
+      <div class="amn-head">
+        <span class="amn-badge">AMEX</span>
+        <span class="amn-title">${
+          lowConf ? "Possible Amex Offer" : "Amex Offer available"
+        }</span>
+        <div class="amn-dismiss">
+          <button class="amn-x" title="Dismiss">&times;</button>
+          <div class="amn-menu">
+            <div class="amn-menu-label">Hide for this site:</div>
+            <button class="amn-session">This session</button>
+            <button class="amn-forever">Forever</button>
+          </div>
+        </div>
+      </div>
+      <div class="amn-merchant">${escapeHtml(offer.name)}</div>
+      ${offer.detail ? `<div class="amn-detail">${escapeHtml(offer.detail)}</div>` : ""}
+      <div class="amn-meta">
+        ${added ? `✓ Added to ${escapeHtml(offer.card)}` : `On ${escapeHtml(offer.card)}`}
+        ${offer.expiry ? ` · ${escapeHtml(offer.expiry)}` : ""}
+      </div>
+      ${
+        added
+          ? ""
+          : `<button class="amn-add">Add to card now</button>`
+      }
+      ${total > 1 ? `<div class="amn-more">+${total - 1} more offer(s) here</div>` : ""}
+    `;
+
+    const style = document.createElement("style");
+    style.textContent = `
+      #amex-merchant-notice {
+        position: fixed; z-index: 2147483647; right: 20px; bottom: 20px;
+        width: 300px; background: #fff; color: #1a1a1a;
+        font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+        border-radius: 12px; box-shadow: 0 10px 34px rgba(0,0,0,.28);
+        border-top: 4px solid #006fcf;
+        transform: translateY(16px); opacity: 0;
+        transition: opacity .25s ease, transform .25s ease;
+      }
+      #amex-merchant-notice.amn-show { transform: translateY(0); opacity: 1; }
+      #amex-merchant-notice .amn-head {
+        display: flex; align-items: center; gap: 8px; padding: 10px 12px 0;
+      }
+      #amex-merchant-notice .amn-badge {
+        background: #006fcf; color: #fff; font-weight: 800; font-size: 10px;
+        letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
+      }
+      #amex-merchant-notice .amn-title { font-size: 12px; font-weight: 600; color:#006fcf; flex: 1; }
+      #amex-merchant-notice .amn-dismiss { position: relative; }
+      #amex-merchant-notice .amn-x {
+        border: 0; background: none; font-size: 20px; line-height: 1;
+        color: #999; cursor: pointer; padding: 0 2px;
+      }
+      #amex-merchant-notice .amn-menu {
+        display: none; position: absolute; top: 24px; right: 0; z-index: 1;
+        background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 6px; width: 130px;
+      }
+      #amex-merchant-notice .amn-menu.amn-open { display: block; }
+      #amex-merchant-notice .amn-menu-label {
+        font-size: 10px; color: #888; padding: 2px 4px 4px;
+      }
+      #amex-merchant-notice .amn-menu button {
+        display: block; width: 100%; text-align: left; border: 0;
+        background: none; padding: 6px 8px; font-size: 12px; color: #1a1a1a;
+        cursor: pointer; border-radius: 6px;
+      }
+      #amex-merchant-notice .amn-menu button:hover { background: #f2f6fb; }
+      #amex-merchant-notice .amn-forever { color: #c0392b; }
+      #amex-merchant-notice .amn-merchant { font-size: 15px; font-weight: 700; padding: 6px 12px 0; }
+      #amex-merchant-notice .amn-detail { font-size: 13px; padding: 4px 12px 0; color:#333; }
+      #amex-merchant-notice .amn-meta { font-size: 11px; color:#666; padding: 6px 12px 0; }
+      #amex-merchant-notice .amn-add {
+        display: block; width: calc(100% - 24px); margin: 10px 12px;
+        padding: 9px; border: 0; border-radius: 7px; background: #006fcf;
+        color: #fff; font-weight: 700; cursor: pointer;
+      }
+      #amex-merchant-notice .amn-add:disabled { background: #9bc4e6; cursor: default; }
+      #amex-merchant-notice .amn-add.amn-done { background: #2e9b3f; }
+      #amex-merchant-notice .amn-more { font-size: 11px; color:#888; padding: 0 12px 10px; }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+    (document.body || document.documentElement).appendChild(wrap);
+    requestAnimationFrame(() => wrap.classList.add("amn-show"));
+
+    const close = () => {
+      wrap.classList.remove("amn-show");
+      setTimeout(() => wrap.remove(), 300);
+    };
+    const dismissSession = () => {
+      try {
+        sessionStorage.setItem("amexHeadsUpDismissed", currentDomain);
+      } catch (_) {}
+      close();
+    };
+    const dismissForever = () => {
+      try {
+        chrome.storage.local.get({ headsUpDismissed: {} }, (res) => {
+          const d = res.headsUpDismissed || {};
+          d[currentDomain] = Date.now();
+          chrome.storage.local.set({ headsUpDismissed: d });
+        });
+      } catch (_) {}
+      close();
+    };
+
+    const menu = wrap.querySelector(".amn-menu");
+    const xBtn = wrap.querySelector(".amn-x");
+    xBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.toggle("amn-open");
+    });
+    wrap.querySelector(".amn-session").addEventListener("click", dismissSession);
+    wrap.querySelector(".amn-forever").addEventListener("click", dismissForever);
+    // Close the menu when clicking elsewhere on the page.
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!wrap.contains(e.target)) menu.classList.remove("amn-open");
+      },
+      true
+    );
+
+    const addBtn = wrap.querySelector(".amn-add");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        addBtn.disabled = true;
+        addBtn.textContent = "Adding…";
+        chrome.runtime.sendMessage(
+          { type: "enrollOne", token: offer.token, offerId: offer.offerId },
+          (resp) => {
+            void chrome.runtime.lastError;
+            if (resp && resp.ok) {
+              addBtn.textContent = "✓ Added";
+              addBtn.classList.add("amn-done");
+              setTimeout(dismiss, 2500);
+            } else {
+              addBtn.disabled = false;
+              addBtn.textContent =
+                resp && resp.reason === "not_logged_in"
+                  ? "Log in to Amex first"
+                  : "Try again";
+            }
+          }
+        );
+      });
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s || "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[c]));
+  }
+})();

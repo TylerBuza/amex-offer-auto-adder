@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 280px;
+        margin: 0;
+        font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #fff;
+        color: #1a1a1a;
+      }
+      header {
+        background: #006fcf;
+        color: #fff;
+        padding: 12px 14px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .body {
+        padding: 14px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: #ccc;
+        transition: 0.2s;
+        border-radius: 24px;
+      }
+      .slider:before {
+        content: "";
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background: #fff;
+        transition: 0.2s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background: #006fcf;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      button.run {
+        width: 100%;
+        padding: 9px;
+        border: 0;
+        border-radius: 6px;
+        background: #006fcf;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.run:disabled {
+        background: #9bc4e6;
+        cursor: default;
+      }
+      .status {
+        font-size: 12px;
+        margin-top: 8px;
+      }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+        background: #bbb;
+      }
+      .dot.on {
+        background: #2e9b3f;
+      }
+      .dot.run {
+        background: #e8a400;
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .hint {
+        font-size: 11px;
+        color: #888;
+        margin-top: 8px;
+      }
+      .update-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: #fff8e1;
+        border-bottom: 1px solid #f0e0a8;
+        color: #7a5c00;
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+      .update-banner b {
+        color: #5a4400;
+      }
+      .update-banner a {
+        flex: none;
+        background: #e8a400;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid #eee;
+        margin: 14px 0 12px;
+      }
+      .section-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        margin-bottom: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 6px;
+        text-align: center;
+      }
+      .stat {
+        background: #f4f8fc;
+        border: 1px solid #e2edf7;
+        border-radius: 8px;
+        padding: 8px 4px;
+      }
+      .stat .n {
+        font-size: 18px;
+        font-weight: 700;
+        color: #006fcf;
+        line-height: 1;
+      }
+      .stat .l {
+        font-size: 10px;
+        color: #666;
+        margin-top: 4px;
+      }
+      .last {
+        font-size: 12px;
+        color: #555;
+        margin-top: 12px;
+      }
+      .last b {
+        color: #1a1a1a;
+      }
+      .recent {
+        margin-top: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+      }
+      .recent .item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #555;
+        padding: 4px 0;
+        border-bottom: 1px solid #f2f2f2;
+        gap: 8px;
+      }
+      .recent .item .m {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .recent .item .when {
+        color: #999;
+        flex-shrink: 0;
+      }
+      .empty {
+        font-size: 11px;
+        color: #aaa;
+        padding: 6px 0;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+      }
+      .total {
+        font-size: 11px;
+        color: #888;
+      }
+      .clear {
+        font-size: 11px;
+        color: #c0392b;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Amex Offer Auto-Adder</header>
+    <div class="update-banner" id="updateBanner">
+      <span
+        >Update available: <b id="updateVer">v?</b> — you have
+        <span id="currentVer">?</span></span
+      >
+      <a id="updateLink" href="#" target="_blank" rel="noopener">Get it</a>
+    </div>
+    <div class="body">
+      <div class="row">
+        <span>Auto-add on visit</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="row">
+        <span>Merchant offer heads-up</span>
+        <label class="switch">
+          <input type="checkbox" id="headsUpToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="run" id="runNow">Add offers now</button>
+      <div class="status">
+        <span class="dot" id="dot"></span><span id="statusText">Idle</span>
+      </div>
+      <div class="hint" id="hint">Open the Amex Offers page while logged in.</div>
+      <div class="hint" id="cacheInfo"></div>
+
+      <hr />
+
+      <div class="section-title">Offers added</div>
+      <div class="grid">
+        <div class="stat"><div class="n" id="s-today">0</div><div class="l">Today</div></div>
+        <div class="stat"><div class="n" id="s-week">0</div><div class="l">Week</div></div>
+        <div class="stat"><div class="n" id="s-month">0</div><div class="l">Month</div></div>
+        <div class="stat"><div class="n" id="s-all">0</div><div class="l">All</div></div>
+      </div>
+
+      <div class="last">Last added: <b id="lastAdded">never</b></div>
+
+      <div id="lastRunWrap" style="display:none">
+        <div class="section-title" style="margin-top: 14px">Last run by card</div>
+        <div class="recent" id="perCard"></div>
+      </div>
+
+      <div class="section-title" style="margin-top: 14px">Recent</div>
+      <div class="recent" id="recent"></div>
+
+      <div class="footer">
+        <span class="total" id="total"></span>
+        <button class="clear" id="clear">Clear history</button>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

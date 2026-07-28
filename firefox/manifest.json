@@ -3,6 +3,13 @@
   "name": "Amex Offer Auto-Adder",
   "version": "1.5.2",
   "description": "Auto-enrolls you in every eligible Amex offer across all your cards, and flags offers when you visit those merchants' sites.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "amex-offer-auto-adder@tylerbuza.github.io",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
   "permissions": ["storage", "scripting", "tabs", "alarms", "notifications"],
   "host_permissions": ["*://*/*"],
   "icons": {
@@ -12,7 +19,7 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"]
   },
   "action": {
     "default_popup": "popup.html",

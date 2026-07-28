@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#006fcf"/>
+  <text x="64" y="52" font-family="Arial, Helvetica, sans-serif" font-size="30"
+        font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="1">AMEX</text>
+  <path d="M40 78 l14 22 h8 l-14 -22 z M88 78 l-14 22 h-8 l14 -22 z"
+        fill="#ffffff" opacity="0"/>
+  <!-- checkmark badge representing an added offer -->
+  <circle cx="64" cy="88" r="24" fill="#ffffff"/>
+  <path d="M52 88 l8 9 l16 -19" fill="none" stroke="#006fcf" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
