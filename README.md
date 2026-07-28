@@ -74,8 +74,12 @@ The Firefox build lives in the [`firefox/`](firefox) folder of this repo.
 
 ## How it works
 
-Everything runs client-side using your own session cookies
-(`credentials: "include"`) — no passwords, no tokens, no external servers.
+Your Amex data and offer processing run entirely client-side using your own
+session cookies (`credentials: "include"`) — no passwords, no tokens, and your
+account/offer data never leaves your browser.
+
+The only network call the extension makes to its own server is a single
+**anonymous install ping** (see [Privacy](#privacy)).
 
 1. `GET /api/servicing/v1/member` → every card's `account_token`.
 2. Per card, `POST ReadOffersHubPresentation.web.v1`
@@ -121,11 +125,23 @@ Amex changes their internal endpoints from time to time. If nothing gets added:
 | `popup.html/js` | Popup UI: toggle, run button, stats & history          |
 | `icons/`        | Toolbar / extension icons                              |
 
+## Privacy
+
+- Your **Amex account and offer data never leave your browser** — all API calls
+  go directly to americanexpress.com from your session.
+- On **first install only**, the extension sends one anonymous ping to
+  `buza.dev` so the author can count installs. It contains a **random ID**
+  (generated locally, not linked to you), the extension version, and your
+  browser name. No personal data, no account data, no browsing history.
+- Nothing is sent on updates, runs, or when browsing merchant sites.
+
 ## Disclaimer
 
 For personal use on your own account. It automates undocumented American Express
 endpoints, which is against Amex's Terms of Service — use at your own risk. The
 extension is not affiliated with or endorsed by American Express.
+
+Author: **Tyler Buza** · [buza.dev](https://buza.dev)
 
 ## License
 

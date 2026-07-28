@@ -296,6 +296,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     } catch (e) {
       console.log("[AmexAutoAdd] default-enable error:", e);
     }
+    sendInstallPing();
   }
   // A fresh manifest version is installed; clear any old update banner and
   // (re)schedule the background update checks.
@@ -315,6 +316,46 @@ chrome.runtime.onStartup.addListener(() => {
   checkForUpdate();
   registerMerchantNotice();
 });
+
+// ---- Anonymous install ping ------------------------------------------------
+// Fires exactly once per install. Sends a random client id (not tied to any
+// identity), the version, and the browser. No personal data, no Amex data.
+const INSTALL_PING_URL = "https://buza.dev/api/amex-ext/install.php";
+
+function detectBrowser() {
+  const ua = (navigator && navigator.userAgent) || "";
+  if (/Firefox\//.test(ua)) return "firefox";
+  if (/Edg\//.test(ua)) return "edge";
+  if (/OPR\//.test(ua)) return "opera";
+  if (/Brave\//.test(ua)) return "brave";
+  return "chrome";
+}
+
+function sendInstallPing() {
+  try {
+    chrome.storage.local.get({ installPinged: false, clientId: "" }, (res) => {
+      if (res.installPinged) return; // once only
+      const id =
+        res.clientId ||
+        (self.crypto && crypto.randomUUID
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(16).slice(2));
+      chrome.storage.local.set({ clientId: id, installPinged: true });
+      fetch(INSTALL_PING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          version: chrome.runtime.getManifest().version,
+          browser: detectBrowser(),
+          event: "install",
+        }),
+      }).catch(() => {
+        /* offline / blocked — ignore, we've already marked pinged */
+      });
+    });
+  } catch (_) {}
+}
 
 // ---- Update checker --------------------------------------------------------
 // Periodically asks GitHub for the latest release. If it's newer than the
