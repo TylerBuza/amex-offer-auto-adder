@@ -191,7 +191,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.storage.local.remove(["updateInfo"]);
   } catch (_) {}
   scheduleUpdateChecks();
-  checkForUpdate();
+  checkForUpdate(true); // force one check right after install/update
 });
 chrome.runtime.onStartup.addListener(() => {
   try {
@@ -226,8 +226,21 @@ function isNewer(a, b) {
   return false;
 }
 
-async function checkForUpdate() {
+const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
+
+async function checkForUpdate(force) {
   try {
+    // Rate-limit ourselves to at most once per 24h (across startups/alarms).
+    if (!force) {
+      const { lastUpdateCheck } = await new Promise((res) =>
+        chrome.storage.local.get({ lastUpdateCheck: 0 }, res)
+      );
+      if (lastUpdateCheck && Date.now() - lastUpdateCheck < CHECK_INTERVAL_MS) {
+        return;
+      }
+    }
+    chrome.storage.local.set({ lastUpdateCheck: Date.now() });
+
     const current = chrome.runtime.getManifest().version;
     const res = await fetch(LATEST_RELEASE_API, {
       headers: { Accept: "application/vnd.github+json" },
@@ -285,12 +298,12 @@ chrome.notifications.onClicked.addListener((id) => {
   }
 });
 
-// Schedule periodic checks (every 12h) and run one shortly after install.
+// Schedule periodic checks (once every 24h) and run one shortly after install.
 function scheduleUpdateChecks() {
   try {
     chrome.alarms.create(UPDATE_ALARM, {
       delayInMinutes: 1,
-      periodInMinutes: 720,
+      periodInMinutes: 1440,
     });
   } catch (_) {}
 }
