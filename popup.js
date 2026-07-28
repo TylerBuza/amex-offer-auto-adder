@@ -251,18 +251,46 @@ async function renderUpdateBanner() {
 }
 
 async function renderHeadsUp() {
-  const { headsUpEnabled, catalogCount, catalogUpdatedAt } = await getStorage({
-    headsUpEnabled: true,
-    catalogCount: 0,
-    catalogUpdatedAt: 0,
-  });
+  const { headsUpEnabled, catalogCount, catalogUpdatedAt, headsUpDismissed } =
+    await getStorage({
+      headsUpEnabled: true,
+      catalogCount: 0,
+      catalogUpdatedAt: 0,
+      headsUpDismissed: {},
+    });
   headsUpToggle.checked = headsUpEnabled !== false;
+
+  cacheInfo.textContent = "";
   if (catalogCount > 0) {
     const ago = catalogUpdatedAt ? " · updated " + timeAgo(catalogUpdatedAt) : "";
-    cacheInfo.textContent = `${catalogCount} merchant offer(s) cached${ago}`;
+    cacheInfo.appendChild(
+      document.createTextNode(`${catalogCount} merchant offer(s) cached${ago}`)
+    );
   } else {
-    cacheInfo.textContent =
-      "Run once to cache offers, then get a heads-up on merchant sites.";
+    cacheInfo.appendChild(
+      document.createTextNode(
+        "Run once to cache offers, then get a heads-up on merchant sites."
+      )
+    );
+  }
+
+  // Offer a reset if any sites were hidden "forever".
+  const hiddenCount = Object.keys(headsUpDismissed || {}).length;
+  if (hiddenCount > 0) {
+    cacheInfo.appendChild(document.createElement("br"));
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = `Reset ${hiddenCount} hidden site(s)`;
+    link.style.color = "#006fcf";
+    link.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await chrome.storage.local.set({ headsUpDismissed: {} });
+      try {
+        chrome.runtime.sendMessage({ type: "catalogUpdated" });
+      } catch (_) {}
+      renderHeadsUp();
+    });
+    cacheInfo.appendChild(link);
   }
 }
 

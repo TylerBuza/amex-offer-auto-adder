@@ -33,8 +33,10 @@
       const entries = (res.offerCatalog || {})[currentDomain];
       if (!entries || !entries.length) return;
 
-      // Session-suppress per domain (cleared when the browser session ends is
-      // approximated via sessionStorage on this tab; plus a stored dismiss).
+      // Permanently dismissed for this domain ("forever").
+      if (res.headsUpDismissed && res.headsUpDismissed[currentDomain]) return;
+
+      // Dismissed for this browser session (per-tab sessionStorage).
       try {
         if (sessionStorage.getItem("amexHeadsUpDismissed") === currentDomain)
           return;
@@ -59,7 +61,14 @@
         <span class="amn-title">${
           lowConf ? "Possible Amex Offer" : "Amex Offer available"
         }</span>
-        <button class="amn-x" title="Dismiss">&times;</button>
+        <div class="amn-dismiss">
+          <button class="amn-x" title="Dismiss">&times;</button>
+          <div class="amn-menu">
+            <div class="amn-menu-label">Hide for this site:</div>
+            <button class="amn-session">This session</button>
+            <button class="amn-forever">Forever</button>
+          </div>
+        </div>
       </div>
       <div class="amn-merchant">${escapeHtml(offer.name)}</div>
       ${offer.detail ? `<div class="amn-detail">${escapeHtml(offer.detail)}</div>` : ""}
@@ -82,7 +91,7 @@
         width: 300px; background: #fff; color: #1a1a1a;
         font-family: -apple-system, Segoe UI, Roboto, sans-serif;
         border-radius: 12px; box-shadow: 0 10px 34px rgba(0,0,0,.28);
-        border-top: 4px solid #006fcf; overflow: hidden;
+        border-top: 4px solid #006fcf;
         transform: translateY(16px); opacity: 0;
         transition: opacity .25s ease, transform .25s ease;
       }
@@ -95,10 +104,27 @@
         letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
       }
       #amex-merchant-notice .amn-title { font-size: 12px; font-weight: 600; color:#006fcf; flex: 1; }
+      #amex-merchant-notice .amn-dismiss { position: relative; }
       #amex-merchant-notice .amn-x {
         border: 0; background: none; font-size: 20px; line-height: 1;
         color: #999; cursor: pointer; padding: 0 2px;
       }
+      #amex-merchant-notice .amn-menu {
+        display: none; position: absolute; top: 24px; right: 0; z-index: 1;
+        background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 6px; width: 130px;
+      }
+      #amex-merchant-notice .amn-menu.amn-open { display: block; }
+      #amex-merchant-notice .amn-menu-label {
+        font-size: 10px; color: #888; padding: 2px 4px 4px;
+      }
+      #amex-merchant-notice .amn-menu button {
+        display: block; width: 100%; text-align: left; border: 0;
+        background: none; padding: 6px 8px; font-size: 12px; color: #1a1a1a;
+        cursor: pointer; border-radius: 6px;
+      }
+      #amex-merchant-notice .amn-menu button:hover { background: #f2f6fb; }
+      #amex-merchant-notice .amn-forever { color: #c0392b; }
       #amex-merchant-notice .amn-merchant { font-size: 15px; font-weight: 700; padding: 6px 12px 0; }
       #amex-merchant-notice .amn-detail { font-size: 13px; padding: 4px 12px 0; color:#333; }
       #amex-merchant-notice .amn-meta { font-size: 11px; color:#666; padding: 6px 12px 0; }
@@ -115,14 +141,43 @@
     (document.body || document.documentElement).appendChild(wrap);
     requestAnimationFrame(() => wrap.classList.add("amn-show"));
 
-    const dismiss = () => {
-      try {
-        sessionStorage.setItem("amexHeadsUpDismissed", currentDomain);
-      } catch (_) {}
+    const close = () => {
       wrap.classList.remove("amn-show");
       setTimeout(() => wrap.remove(), 300);
     };
-    wrap.querySelector(".amn-x").addEventListener("click", dismiss);
+    const dismissSession = () => {
+      try {
+        sessionStorage.setItem("amexHeadsUpDismissed", currentDomain);
+      } catch (_) {}
+      close();
+    };
+    const dismissForever = () => {
+      try {
+        chrome.storage.local.get({ headsUpDismissed: {} }, (res) => {
+          const d = res.headsUpDismissed || {};
+          d[currentDomain] = Date.now();
+          chrome.storage.local.set({ headsUpDismissed: d });
+        });
+      } catch (_) {}
+      close();
+    };
+
+    const menu = wrap.querySelector(".amn-menu");
+    const xBtn = wrap.querySelector(".amn-x");
+    xBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.toggle("amn-open");
+    });
+    wrap.querySelector(".amn-session").addEventListener("click", dismissSession);
+    wrap.querySelector(".amn-forever").addEventListener("click", dismissForever);
+    // Close the menu when clicking elsewhere on the page.
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!wrap.contains(e.target)) menu.classList.remove("amn-open");
+      },
+      true
+    );
 
     const addBtn = wrap.querySelector(".amn-add");
     if (addBtn) {
