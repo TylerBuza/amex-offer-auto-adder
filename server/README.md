@@ -9,6 +9,22 @@ Runs on any PHP-capable Apache/Nginx host — no database, just flat files.
   `{id, version, browser, event}`), dedupes by `id`, appends a line to a log.
 - `amex-ext/stats.php` — token-protected JSON summary (totals by browser /
   version / country / day).
+- `amex-ext/index.php` — a **password-protected HTML dashboard** (login form →
+  visual stats: totals, 14-day chart, browser/version/country breakdowns,
+  recent installs). Deployed at `/admin/` on the live site.
+
+## Admin dashboard
+
+Served at `https://yoursite/admin/`. The password is read from a config file
+kept **outside the web root** (never committed):
+
+```php
+// /var/www/amex-ext-data/config.php  (chmod 640, owner www-data)
+<?php
+return array('admin_pw' => 'YOUR_PASSWORD');
+```
+
+Log in at `/admin/` with that password.
 
 ## Deploy
 
