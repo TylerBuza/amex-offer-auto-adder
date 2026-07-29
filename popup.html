@@ -170,15 +170,19 @@
       button.run {
         width: 100%;
         padding: 9px;
-        border: 0;
+        border: 1px solid var(--accent-border);
         border-radius: 6px;
-        background: #006fcf;
-        color: #fff;
+        background: var(--accent-soft);
+        color: var(--accent);
         font-weight: 600;
         cursor: pointer;
+        transition: box-shadow 0.15s ease;
+      }
+      button.run:hover:not(:disabled) {
+        box-shadow: 0 2px 8px rgba(0, 111, 207, 0.18);
       }
       button.run:disabled {
-        background: #9bc4e6;
+        opacity: 0.6;
         cursor: default;
       }
       .status {
