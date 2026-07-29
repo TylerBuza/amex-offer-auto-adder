@@ -34,15 +34,16 @@ function applyTheme(theme) {
   } else {
     root.removeAttribute("data-theme"); // auto = follow prefers-color-scheme
   }
-  const isDark =
-    theme === "dark" ||
-    (theme !== "light" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
   if (themeBtn) {
-    themeBtn.textContent = isDark ? "☀️" : "🌙";
-    themeBtn.title =
-      "Theme: " + (theme || "auto") + " (click to change)";
+    const label =
+      theme === "light"
+        ? "☀ Light"
+        : theme === "dark"
+        ? "🌙 Dark"
+        : "🅰 Auto";
+    themeBtn.textContent = label;
+    themeBtn.title = "Theme: " + (theme || "auto") + " — click to change";
+    themeBtn.setAttribute("data-mode", theme || "auto");
   }
 }
 

@@ -21,6 +21,8 @@
         --banner-border: #f0e0a8;
         --banner-text: #7a5c00;
         --banner-text-strong: #5a4400;
+        --scroll-thumb: #c3ccd6;
+        --scroll-thumb-hover: #a8b3bf;
       }
       [data-theme="dark"] {
         --bg: #2a3240;
@@ -40,6 +42,8 @@
         --banner-border: #5a5426;
         --banner-text: #e8d08a;
         --banner-text-strong: #f5e6b0;
+        --scroll-thumb: #4a566a;
+        --scroll-thumb-hover: #5a6980;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
@@ -60,6 +64,8 @@
           --banner-border: #5a5426;
           --banner-text: #e8d08a;
           --banner-text-strong: #f5e6b0;
+          --scroll-thumb: #4a566a;
+          --scroll-thumb-hover: #5a6980;
         }
       }
       body {
@@ -68,6 +74,27 @@
         font-family: -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
+      }
+      /* Themed scrollbars (Firefox) */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scroll-thumb) transparent;
+      }
+      /* Themed scrollbars (Chromium) */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 6px;
+        border: 2px solid var(--bg);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--scroll-thumb-hover);
       }
       header {
         background: #006fcf;
