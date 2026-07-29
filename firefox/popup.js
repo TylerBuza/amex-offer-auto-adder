@@ -21,6 +21,46 @@ const headsUpToggle = $("headsUpToggle");
 const cacheInfo = $("cacheInfo");
 const checkUpdateBtn = $("checkUpdate");
 const updateStatus = $("updateStatus");
+const themeBtn = $("themeBtn");
+
+// ---- Theme (auto / light / dark) -------------------------------------------
+// Cycles: auto (follows OS) -> light -> dark -> auto.
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "light" || theme === "dark") {
+    root.setAttribute("data-theme", theme);
+  } else {
+    root.removeAttribute("data-theme"); // auto = follow prefers-color-scheme
+  }
+  const isDark =
+    theme === "dark" ||
+    (theme !== "light" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  if (themeBtn) {
+    themeBtn.textContent = isDark ? "☀️" : "🌙";
+    themeBtn.title =
+      "Theme: " + (theme || "auto") + " (click to change)";
+  }
+}
+
+// Apply saved theme ASAP to avoid a flash.
+try {
+  chrome.storage.local.get({ theme: "auto" }, (r) => applyTheme(r.theme));
+} catch (_) {
+  applyTheme("auto");
+}
+
+if (themeBtn) {
+  themeBtn.addEventListener("click", () => {
+    chrome.storage.local.get({ theme: "auto" }, (r) => {
+      const next =
+        r.theme === "auto" ? "light" : r.theme === "light" ? "dark" : "auto";
+      chrome.storage.local.set({ theme: next });
+      applyTheme(next);
+    });
+  });
+}
 
 async function activeTab() {
   try {

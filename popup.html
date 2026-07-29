@@ -3,12 +3,71 @@
   <head>
     <meta charset="utf-8" />
     <style>
+      :root {
+        --bg: #ffffff;
+        --text: #1a1a1a;
+        --text-muted: #888888;
+        --text-soft: #555555;
+        --accent: #006fcf;
+        --accent-soft: #eef5fc;
+        --accent-border: #cfe2f5;
+        --surface: #f4f8fc;
+        --surface-border: #e2edf7;
+        --hr: #eeeeee;
+        --item-border: #f2f2f2;
+        --slider-off: #cccccc;
+        --knob: #ffffff;
+        --banner-bg: #fff8e1;
+        --banner-border: #f0e0a8;
+        --banner-text: #7a5c00;
+        --banner-text-strong: #5a4400;
+      }
+      [data-theme="dark"] {
+        --bg: #2a3240;
+        --text: #e8eef7;
+        --text-muted: #93a3ba;
+        --text-soft: #bcc8d8;
+        --accent: #5aa9ee;
+        --accent-soft: #333d4e;
+        --accent-border: #3f4b5e;
+        --surface: #323b4b;
+        --surface-border: #3f4b5e;
+        --hr: #3a4455;
+        --item-border: #384252;
+        --slider-off: #4a566a;
+        --knob: #e8eef7;
+        --banner-bg: #3b3a22;
+        --banner-border: #5a5426;
+        --banner-text: #e8d08a;
+        --banner-text-strong: #f5e6b0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #2a3240;
+          --text: #e8eef7;
+          --text-muted: #93a3ba;
+          --text-soft: #bcc8d8;
+          --accent: #5aa9ee;
+          --accent-soft: #333d4e;
+          --accent-border: #3f4b5e;
+          --surface: #323b4b;
+          --surface-border: #3f4b5e;
+          --hr: #3a4455;
+          --item-border: #384252;
+          --slider-off: #4a566a;
+          --knob: #e8eef7;
+          --banner-bg: #3b3a22;
+          --banner-border: #5a5426;
+          --banner-text: #e8d08a;
+          --banner-text-strong: #f5e6b0;
+        }
+      }
       body {
         width: 280px;
         margin: 0;
         font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-        background: #fff;
-        color: #1a1a1a;
+        background: var(--bg);
+        color: var(--text);
       }
       header {
         background: #006fcf;
@@ -16,6 +75,19 @@
         padding: 12px 14px;
         font-weight: 600;
         font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .theme-btn {
+        background: rgba(255, 255, 255, 0.18);
+        border: 0;
+        color: #fff;
+        font-size: 13px;
+        border-radius: 6px;
+        padding: 3px 8px;
+        cursor: pointer;
+        line-height: 1;
       }
       .body {
         padding: 14px;
@@ -41,7 +113,7 @@
         position: absolute;
         cursor: pointer;
         inset: 0;
-        background: #ccc;
+        background: var(--slider-off);
         transition: 0.2s;
         border-radius: 24px;
       }
@@ -52,7 +124,7 @@
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background: #fff;
+        background: var(--knob);
         transition: 0.2s;
         border-radius: 50%;
       }
@@ -102,7 +174,7 @@
       }
       .hint {
         font-size: 11px;
-        color: #888;
+        color: var(--text-muted);
         margin-top: 8px;
       }
       .update-banner {
@@ -110,14 +182,14 @@
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        background: #fff8e1;
-        border-bottom: 1px solid #f0e0a8;
-        color: #7a5c00;
+        background: var(--banner-bg);
+        border-bottom: 1px solid var(--banner-border);
+        color: var(--banner-text);
         padding: 10px 14px;
         font-size: 12px;
       }
       .update-banner b {
-        color: #5a4400;
+        color: var(--banner-text-strong);
       }
       .update-banner a {
         flex: none;
@@ -131,14 +203,14 @@
       }
       hr {
         border: 0;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--hr);
         margin: 14px 0 12px;
       }
       .section-title {
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #888;
+        color: var(--text-muted);
         margin-bottom: 8px;
       }
       .grid {
@@ -148,29 +220,29 @@
         text-align: center;
       }
       .stat {
-        background: #f4f8fc;
-        border: 1px solid #e2edf7;
+        background: var(--surface);
+        border: 1px solid var(--surface-border);
         border-radius: 8px;
         padding: 8px 4px;
       }
       .stat .n {
         font-size: 18px;
         font-weight: 700;
-        color: #006fcf;
+        color: var(--accent);
         line-height: 1;
       }
       .stat .l {
         font-size: 10px;
-        color: #666;
+        color: var(--text-muted);
         margin-top: 4px;
       }
       .last {
         font-size: 12px;
-        color: #555;
+        color: var(--text-soft);
         margin-top: 12px;
       }
       .last b {
-        color: #1a1a1a;
+        color: var(--text);
       }
       .recent {
         margin-top: 10px;
@@ -181,9 +253,9 @@
         display: flex;
         justify-content: space-between;
         font-size: 11px;
-        color: #555;
+        color: var(--text-soft);
         padding: 4px 0;
-        border-bottom: 1px solid #f2f2f2;
+        border-bottom: 1px solid var(--item-border);
         gap: 8px;
       }
       .recent .item .m {
@@ -192,12 +264,12 @@
         white-space: nowrap;
       }
       .recent .item .when {
-        color: #999;
+        color: var(--text-muted);
         flex-shrink: 0;
       }
       .empty {
         font-size: 11px;
-        color: #aaa;
+        color: var(--text-muted);
         padding: 6px 0;
       }
       .footer {
@@ -208,11 +280,11 @@
       }
       .total {
         font-size: 11px;
-        color: #888;
+        color: var(--text-muted);
       }
       .clear {
         font-size: 11px;
-        color: #c0392b;
+        color: #d9534f;
         background: none;
         border: 0;
         cursor: pointer;
@@ -227,9 +299,9 @@
         flex: none;
         font-size: 12px;
         font-weight: 600;
-        color: #006fcf;
-        background: #eef5fc;
-        border: 1px solid #cfe2f5;
+        color: var(--accent);
+        background: var(--accent-soft);
+        border: 1px solid var(--accent-border);
         border-radius: 6px;
         padding: 6px 10px;
         cursor: pointer;
@@ -240,25 +312,28 @@
       }
       .update-note {
         font-size: 11px;
-        color: #999;
+        color: var(--text-muted);
       }
       .credit {
         text-align: center;
         font-size: 11px;
-        color: #999;
+        color: var(--text-muted);
         margin-top: 14px;
       }
       .credit b {
-        color: #555;
+        color: var(--text-soft);
       }
       .credit a {
-        color: #006fcf;
+        color: var(--accent);
         text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <header>Amex Offer Auto-Adder</header>
+    <header>
+      <span>Amex Offer Auto-Adder</span>
+      <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
+    </header>
     <div class="update-banner" id="updateBanner">
       <span
         >Update available: <b id="updateVer">v?</b> — you have
