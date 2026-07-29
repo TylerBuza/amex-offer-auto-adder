@@ -303,10 +303,55 @@ chrome.runtime.onInstalled.addListener((details) => {
   try {
     chrome.storage.local.remove(["updateInfo"]);
   } catch (_) {}
+  cleanCatalog(); // strip blocklisted domains from any existing cached catalog
   scheduleUpdateChecks();
   checkForUpdate(true); // force one check right after install/update
   registerMerchantNotice(); // re-establish heads-up script on update/install
 });
+
+// One-time cleanup: remove non-merchant / boilerplate domains (e.g.
+// americanexpress.com) that older versions may have cached, then re-register
+// the heads-up script for the cleaned domain set.
+const CATALOG_BLOCKLIST = new Set([
+  "americanexpress.com",
+  "amex.com",
+  "amexoffers.com",
+  "americanexpress.ca",
+  "aexp-static.com",
+  "example.com",
+  "google.com",
+  "apple.com",
+  "facebook.com",
+  "instagram.com",
+  "twitter.com",
+  "x.com",
+  "youtube.com",
+  "visa.com",
+  "mastercard.com",
+  "paypal.com",
+]);
+
+function cleanCatalog() {
+  try {
+    chrome.storage.local.get({ offerCatalog: {} }, (res) => {
+      const cat = res.offerCatalog || {};
+      let changed = false;
+      for (const host of Object.keys(cat)) {
+        if (CATALOG_BLOCKLIST.has(host)) {
+          delete cat[host];
+          changed = true;
+        }
+      }
+      if (changed) {
+        chrome.storage.local.set(
+          { offerCatalog: cat, catalogCount: Object.keys(cat).length },
+          () => registerMerchantNotice()
+        );
+        console.log("[AmexAutoAdd] Cleaned blocklisted domains from catalog.");
+      }
+    });
+  } catch (_) {}
+}
 chrome.runtime.onStartup.addListener(() => {
   try {
     setIcon();
