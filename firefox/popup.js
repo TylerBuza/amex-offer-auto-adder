@@ -216,7 +216,8 @@ async function renderStats() {
     ? `${fullTime(last.t)} (${timeAgo(last.t)})`
     : "never";
 
-  // Recent list (newest first, up to 15).
+  // Recent list (newest first, up to 15). Each item is clickable to expand
+  // details (pulled from the offer catalog when available).
   const recent = document.getElementById("recent");
   recent.innerHTML = "";
   const items = history.slice(-15).reverse();
@@ -224,8 +225,11 @@ async function renderStats() {
     recent.innerHTML = '<div class="empty">No offers added yet.</div>';
   } else {
     for (const h of items) {
-      const div = document.createElement("div");
-      div.className = "item";
+      const wrap = document.createElement("div");
+      wrap.className = "recent-item";
+
+      const row = document.createElement("div");
+      row.className = "item recent-row";
       const name = document.createElement("span");
       name.className = "m";
       name.textContent = h.m || "Offer added";
@@ -234,9 +238,36 @@ async function renderStats() {
       when.className = "when";
       when.textContent = timeAgo(h.t);
       when.title = fullTime(h.t);
-      div.appendChild(name);
-      div.appendChild(when);
-      recent.appendChild(div);
+      row.appendChild(name);
+      row.appendChild(when);
+
+      // Details, filled from the catalog lookup on the offer name.
+      const det = document.createElement("div");
+      det.className = "recent-details";
+      const match = findOfferByName(h.m);
+      const detailText = match && match.detail ? match.detail : "";
+      const card = h.c || (match && match.card) || "";
+      const expiry = match && match.expiry ? match.expiry : "";
+      const expText = expiry
+        ? /^expires/i.test(expiry.trim())
+          ? expiry.trim()
+          : "Expires " + expiry.trim()
+        : "";
+      const link =
+        match && match.url
+          ? `<a class="offer-link" href="${escapeHtml(match.url)}" target="_blank" rel="noopener">${escapeHtml(match.domain)}</a>`
+          : "";
+      det.innerHTML = `
+        <div>${escapeHtml(detailText) || "Added " + fullTime(h.t)}</div>
+        <div class="meta">${card ? "Added to: " + escapeHtml(card) : ""}${
+        expText ? " · " + escapeHtml(expText) : ""
+      }</div>
+        ${link}`;
+
+      row.addEventListener("click", () => wrap.classList.toggle("open"));
+      wrap.appendChild(row);
+      wrap.appendChild(det);
+      recent.appendChild(wrap);
     }
   }
 
@@ -493,6 +524,17 @@ let allOffers = []; // flat list from the last run (added + eligible)
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+// Look up a cached offer by (approximate) merchant name, for Recent details.
+function findOfferByName(name) {
+  if (!name || !Array.isArray(allOffers)) return null;
+  const n = name.trim().toLowerCase();
+  return (
+    allOffers.find((o) => (o.name || "").trim().toLowerCase() === n) ||
+    allOffers.find((o) => (o.name || "").trim().toLowerCase().startsWith(n)) ||
+    null
   );
 }
 
