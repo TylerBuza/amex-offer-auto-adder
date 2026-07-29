@@ -19,6 +19,8 @@ const hint = $("hint");
 const clearBtn = $("clear");
 const headsUpToggle = $("headsUpToggle");
 const cacheInfo = $("cacheInfo");
+const offerSearch = $("offerSearch");
+const offerResults = $("offerResults");
 const checkUpdateBtn = $("checkUpdate");
 const updateStatus = $("updateStatus");
 const themeBtn = $("themeBtn");
@@ -478,6 +480,113 @@ try {
     if (area === "local" && changes.history) renderStats();
   });
 } catch {}
+
+// ---- Offer search ----------------------------------------------------------
+let allOffers = []; // flat list from the last run (added + eligible)
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+// Merge duplicate offers (same name+detail) across cards into one entry.
+function dedupeOffers(list) {
+  const map = new Map();
+  for (const o of list) {
+    const key = (o.name || "") + "|" + (o.detail || "");
+    if (!map.has(key)) {
+      map.set(key, { ...o, cards: [o.card], enrolled: o.enrolled });
+    } else {
+      const e = map.get(key);
+      if (o.card && !e.cards.includes(o.card)) e.cards.push(o.card);
+      e.enrolled = e.enrolled || o.enrolled;
+    }
+  }
+  return [...map.values()];
+}
+
+function renderOffers(query) {
+  const q = (query || "").trim().toLowerCase();
+  let list = dedupeOffers(allOffers);
+  if (q) {
+    list = list.filter(
+      (o) =>
+        (o.name || "").toLowerCase().includes(q) ||
+        (o.detail || "").toLowerCase().includes(q) ||
+        (o.domain || "").toLowerCase().includes(q)
+    );
+  }
+  // Sort: added first, then alphabetical by name.
+  list.sort((a, b) => {
+    if (!!b.enrolled !== !!a.enrolled) return b.enrolled ? 1 : -1;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+
+  offerResults.innerHTML = "";
+  if (allOffers.length === 0) {
+    offerResults.innerHTML =
+      '<div class="empty">Run once to load your offers, then search here.</div>';
+    return;
+  }
+  if (list.length === 0) {
+    offerResults.innerHTML = '<div class="empty">No matching offers.</div>';
+    return;
+  }
+
+  const count = document.createElement("div");
+  count.className = "search-count";
+  count.textContent =
+    list.length + (q ? " match" + (list.length === 1 ? "" : "es") : " offers");
+  offerResults.appendChild(count);
+
+  const shown = list.slice(0, 200); // cap for performance
+  for (const o of shown) {
+    const el = document.createElement("div");
+    el.className = "offer";
+    const tag = o.enrolled
+      ? '<span class="offer-tag added">Added</span>'
+      : '<span class="offer-tag eligible">Eligible</span>';
+    const cards = (o.cards || [o.card]).filter(Boolean).join(", ");
+    const link = o.url
+      ? `<div class="meta">🔗 <a href="${escapeHtml(o.url)}" target="_blank" rel="noopener">${escapeHtml(o.domain)}</a></div>`
+      : "";
+    el.innerHTML = `
+      <div class="offer-head">
+        <span class="offer-name">${escapeHtml(o.name)}</span>
+        ${tag}
+      </div>
+      <div class="offer-details">
+        <div>${escapeHtml(o.detail) || "No details available."}</div>
+        <div class="meta">${o.enrolled ? "Added to" : "Available on"}: ${escapeHtml(cards)}${
+          o.expiry ? " · Expires " + escapeHtml(o.expiry) : ""
+        }</div>
+        ${link}
+      </div>`;
+    // Toggle details on click (but let link clicks pass through).
+    el.querySelector(".offer-head").addEventListener("click", () =>
+      el.classList.toggle("open")
+    );
+    offerResults.appendChild(el);
+  }
+}
+
+async function loadOffers() {
+  const { offerList } = await getStorage({ offerList: [] });
+  allOffers = Array.isArray(offerList) ? offerList : [];
+  renderOffers(offerSearch.value || "");
+}
+
+offerSearch.addEventListener("input", () => renderOffers(offerSearch.value));
+
+// Keep the list fresh if a run updates the offers while the popup is open.
+try {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.offerList) loadOffers();
+  });
+} catch {}
+
+loadOffers();
 
 // Kick off, but never let a startup failure freeze the popup.
 refresh().catch((e) => console.log("[AmexAutoAdd] refresh failed:", e));

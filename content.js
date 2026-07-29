@@ -374,11 +374,13 @@
       .sort((a, b) => b.confidence - a.confidence);
   }
 
-  // Accumulates the offer catalog (domain -> [entries]) across a run.
+  // Accumulates the offer catalog (domain -> [entries]) and a flat searchable
+  // list of every offer across a run.
   const catalog = {};
+  const offerList = []; // every offer (added + eligible), for popup search
   function addToCatalog(offer, card, enrolled) {
     const domains = deriveDomains(offer);
-    if (!domains.length) return;
+    const bestHost = domains.length ? domains[0].host : "";
     const entry = {
       name: offerName(offer),
       detail: offerDetail(offer),
@@ -387,10 +389,19 @@
       offerId: offer.offerId,
       token: card.token,
       enrolled: !!enrolled,
-      confidence: domains[0].confidence,
+      domain: bestHost,
+      url: bestHost ? "https://" + bestHost : "",
     };
-    for (const { host } of domains) {
-      (catalog[host] = catalog[host] || []).push(entry);
+
+    // Flat list for search — includes offers even without a derived domain.
+    offerList.push(entry);
+
+    // Domain-keyed catalog powers the on-site merchant heads-up.
+    if (domains.length) {
+      const withConf = { ...entry, confidence: domains[0].confidence };
+      for (const { host } of domains) {
+        (catalog[host] = catalog[host] || []).push(withConf);
+      }
     }
   }
 
@@ -398,8 +409,10 @@
     try {
       chrome.storage.local.set({
         offerCatalog: catalog,
+        offerList,
         catalogUpdatedAt: Date.now(),
         catalogCount: Object.keys(catalog).length,
+        offerListCount: offerList.length,
       });
     } catch (_) {}
   }
@@ -427,8 +440,9 @@
         return;
       }
 
-      // Reset the merchant-offer catalog for this fresh run.
+      // Reset the merchant-offer catalog + flat offer list for this fresh run.
       for (const k of Object.keys(catalog)) delete catalog[k];
+      offerList.length = 0;
 
       let enrolled = 0;
       let cardIdx = 0;

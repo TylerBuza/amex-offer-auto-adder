@@ -275,6 +275,86 @@
         color: var(--text-muted);
         padding: 6px 0;
       }
+      .search-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--surface-border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+      }
+      .search-input:focus {
+        border-color: var(--accent);
+      }
+      .search-input::placeholder {
+        color: var(--text-muted);
+      }
+      .search-results {
+        margin-top: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .offer {
+        border: 1px solid var(--surface-border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        background: var(--surface);
+      }
+      .offer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .offer-name {
+        font-size: 13px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .offer-tag {
+        flex: none;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .offer-tag.added {
+        background: #2e9b3f;
+        color: #fff;
+      }
+      .offer-tag.eligible {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .offer-details {
+        display: none;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-soft);
+        line-height: 1.4;
+      }
+      .offer.open .offer-details {
+        display: block;
+      }
+      .offer-details .meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 5px;
+      }
+      .search-count {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin: 2px 0 6px;
+      }
       .footer {
         display: flex;
         justify-content: space-between;
@@ -375,6 +455,20 @@
         <div class="stat"><div class="n" id="s-month">0</div><div class="l">Month</div></div>
         <div class="stat"><div class="n" id="s-all">0</div><div class="l">All</div></div>
       </div>
+
+      <hr />
+
+      <div class="section-title">Search my offers</div>
+      <input
+        type="text"
+        id="offerSearch"
+        class="search-input"
+        placeholder="Search merchants (e.g. Delta, Whole Foods)…"
+        autocomplete="off"
+      />
+      <div class="search-results" id="offerResults"></div>
+
+      <hr />
 
       <div class="last">Last added: <b id="lastAdded">never</b></div>
 
