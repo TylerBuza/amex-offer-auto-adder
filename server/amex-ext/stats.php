@@ -2,8 +2,12 @@
 // Amex Offer Auto-Adder -- install stats (token-protected).
 // Usage: https://buza.dev/api/amex-ext/stats.php?token=YOUR_TOKEN
 
-$TOKEN = 'REPLACE_TOKEN';
+// Token is read from a config file kept outside the web root (same one the
+// /admin dashboard uses), so there's a single source of truth and no secret
+// committed to the repo.
 $DATA_DIR = '/var/www/amex-ext-data';
+$cfg = @include $DATA_DIR . '/config.php';
+$TOKEN = is_array($cfg) && isset($cfg['admin_pw']) ? $cfg['admin_pw'] : '';
 $LOG = $DATA_DIR . '/installs.log';
 
 $given = isset($_GET['token']) ? $_GET['token'] : '';
