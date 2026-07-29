@@ -306,13 +306,36 @@
   const DOMAIN_RE =
     /\b((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|net|org|co|us|shop|store|io|app))\b/gi;
 
+  // Domains that appear in Amex offer boilerplate/terms but are NOT the
+  // merchant — never catalog these (they'd match on amex.com and everywhere).
+  const DOMAIN_BLOCKLIST = new Set([
+    "americanexpress.com",
+    "amex.com",
+    "amexoffers.com",
+    "americanexpress.ca",
+    "aexp-static.com",
+    "example.com",
+    "google.com",
+    "apple.com",
+    "facebook.com",
+    "instagram.com",
+    "twitter.com",
+    "x.com",
+    "youtube.com",
+    "visa.com",
+    "mastercard.com",
+    "paypal.com",
+  ]);
+
   // Returns [{ host, confidence }] for an offer, best first.
   function deriveDomains(offer) {
     const out = new Map(); // host -> confidence rank (higher = better)
     const add = (host, conf) => {
       const h = registrable(host);
       if (!h || h.length < 4) return;
-      if (!out.has(h) || out.get(h) < conf) out.set(h, conf);
+      if (DOMAIN_BLOCKLIST.has(h)) return; // skip Amex/boilerplate domains
+      if (out.has(h) && out.get(h) >= conf) return;
+      out.set(h, conf);
     };
 
     const title = String(offer.title || offer.name || "");

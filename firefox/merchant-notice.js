@@ -26,6 +26,15 @@
   const currentDomain = registrable(location.hostname);
   if (!currentDomain) return;
 
+  // Never show the heads-up on Amex's own sites (or common non-merchant hosts).
+  const NEVER_ON = new Set([
+    "americanexpress.com",
+    "amex.com",
+    "amexoffers.com",
+    "americanexpress.ca",
+  ]);
+  if (NEVER_ON.has(currentDomain)) return;
+
   chrome.storage.local.get(
     { offerCatalog: {}, headsUpEnabled: true, headsUpDismissed: {} },
     (res) => {
