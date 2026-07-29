@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Amex Offer Auto-Adder",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Auto-enrolls you in every eligible Amex offer across all your cards, and flags offers when you visit those merchants' sites.",
   "author": "Tyler Buza",
   "homepage_url": "https://buza.dev",
-  "permissions": ["storage", "scripting", "tabs", "alarms", "notifications"],
+  "permissions": ["storage", "scripting", "tabs", "alarms", "notifications", "downloads"],
   "host_permissions": ["*://*/*"],
   "icons": {
     "16": "icons/icon16.png",

@@ -285,11 +285,40 @@ async function renderUpdateBanner() {
     const link = document.getElementById("updateLink");
     if (verEl) verEl.textContent = "v" + updateInfo.latest;
     if (curEl) curEl.textContent = "v" + updateInfo.current;
-    if (link) link.href = updateInfo.url;
+    if (link) link.textContent = updateInfo.assetUrl ? "Download" : "View";
     banner.style.display = "flex";
   } else {
     banner.style.display = "none";
   }
+}
+
+// Download the new zip (or open the release page as a fallback).
+const updateLinkBtn = document.getElementById("updateLink");
+if (updateLinkBtn) {
+  updateLinkBtn.addEventListener("click", () => {
+    updateLinkBtn.disabled = true;
+    updateLinkBtn.textContent = "Downloading…";
+    try {
+      chrome.runtime.sendMessage({ type: "downloadUpdate" }, (resp) => {
+        void chrome.runtime.lastError;
+        updateLinkBtn.disabled = false;
+        if (resp && resp.downloaded) {
+          updateLinkBtn.textContent = "✓ Saved";
+          const span = document.querySelector("#updateBanner span");
+          if (span)
+            span.textContent =
+              "Downloaded. Unzip it, then reload the extension at chrome://extensions.";
+        } else if (resp && resp.opened) {
+          updateLinkBtn.textContent = "Opened";
+        } else {
+          updateLinkBtn.textContent = "Download";
+        }
+      });
+    } catch (_) {
+      updateLinkBtn.disabled = false;
+      updateLinkBtn.textContent = "Download";
+    }
+  });
 }
 
 async function renderHeadsUp() {

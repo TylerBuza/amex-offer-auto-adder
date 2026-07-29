@@ -208,6 +208,26 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       });
     });
     return true;
+  } else if (msg.type === "downloadUpdate") {
+    // Download the new zip directly for this browser.
+    chrome.storage.local.get({ updateInfo: null }, (r) => {
+      const info = r.updateInfo;
+      const dlUrl = (info && info.assetUrl) || null;
+      if (dlUrl && chrome.downloads) {
+        chrome.downloads.download(
+          { url: dlUrl, filename: (info && info.assetName) || undefined },
+          (id) => {
+            void chrome.runtime.lastError;
+            sendResponse({ ok: !!id, downloaded: !!id, url: dlUrl });
+          }
+        );
+      } else {
+        // No asset URL — fall back to opening the release page.
+        chrome.tabs.create({ url: (info && info.url) || RELEASES_PAGE });
+        sendResponse({ ok: false, opened: true });
+      }
+    });
+    return true;
   } else if (msg.type === "enrollOne") {
     // Async: keep the message channel open with `return true`.
     enrollOneOffer(msg.token, msg.offerId)
@@ -461,10 +481,23 @@ async function checkForUpdate(force) {
 
     if (isNewer(latest, current)) {
       const url = data.html_url || RELEASES_PAGE;
+      // Pick the right zip asset for this browser (firefox build vs chrome).
+      const assets = Array.isArray(data.assets) ? data.assets : [];
+      const isFF = detectBrowser() === "firefox";
+      let asset =
+        assets.find((a) =>
+          isFF
+            ? /firefox/i.test(a.name || "")
+            : !/firefox/i.test(a.name || "") && /\.zip$/i.test(a.name || "")
+        ) || assets.find((a) => /\.zip$/i.test(a.name || ""));
+      const assetUrl = asset ? asset.browser_download_url : "";
+      const assetName = asset ? asset.name : "";
       const info = {
         latest,
         current,
         url,
+        assetUrl,
+        assetName,
         notes: (data.body || "").slice(0, 400),
         checkedAt: Date.now(),
       };

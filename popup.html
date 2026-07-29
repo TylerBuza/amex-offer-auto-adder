@@ -191,7 +191,8 @@
       .update-banner b {
         color: var(--banner-text-strong);
       }
-      .update-banner a {
+      .update-banner a,
+      .update-banner button {
         flex: none;
         background: #e8a400;
         color: #fff;
@@ -200,6 +201,8 @@
         padding: 5px 10px;
         border-radius: 6px;
         font-size: 12px;
+        border: 0;
+        cursor: pointer;
       }
       hr {
         border: 0;
@@ -339,7 +342,7 @@
         >Update available: <b id="updateVer">v?</b> — you have
         <span id="currentVer">?</span></span
       >
-      <a id="updateLink" href="#" target="_blank" rel="noopener">Get it</a>
+      <button id="updateLink" type="button">Download</button>
     </div>
     <div class="body">
       <div class="row">
