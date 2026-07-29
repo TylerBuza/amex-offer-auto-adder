@@ -19,6 +19,8 @@ const hint = $("hint");
 const clearBtn = $("clear");
 const headsUpToggle = $("headsUpToggle");
 const cacheInfo = $("cacheInfo");
+const checkUpdateBtn = $("checkUpdate");
+const updateStatus = $("updateStatus");
 
 async function activeTab() {
   try {
@@ -358,6 +360,30 @@ runNow.addEventListener("click", async () => {
 });
 
 
+
+checkUpdateBtn.addEventListener("click", () => {
+  checkUpdateBtn.disabled = true;
+  updateStatus.textContent = "Checking…";
+  try {
+    chrome.runtime.sendMessage({ type: "checkUpdateNow" }, (resp) => {
+      void chrome.runtime.lastError;
+      checkUpdateBtn.disabled = false;
+      if (resp && resp.updateInfo && resp.updateInfo.latest) {
+        updateStatus.textContent =
+          "Update available: v" + resp.updateInfo.latest;
+        renderUpdateBanner(); // show the banner at the top too
+      } else {
+        updateStatus.textContent = "You're up to date";
+        setTimeout(() => {
+          updateStatus.textContent = "Auto-checks every 12 hours";
+        }, 4000);
+      }
+    });
+  } catch (_) {
+    checkUpdateBtn.disabled = false;
+    updateStatus.textContent = "Auto-checks every 12 hours";
+  }
+});
 
 clearBtn.addEventListener("click", async () => {
   if (!confirm("Clear all added-offer history?")) return;

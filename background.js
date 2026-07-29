@@ -200,6 +200,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.text === "✓" || msg.text === "!") scheduleBadgeClear(8000);
   } else if (msg.type === "catalogUpdated") {
     registerMerchantNotice();
+  } else if (msg.type === "checkUpdateNow") {
+    // Manual "Check for updates" from the popup — force it, report result.
+    checkForUpdate(true).then(() => {
+      chrome.storage.local.get({ updateInfo: null }, (r) => {
+        sendResponse({ updateInfo: r.updateInfo || null });
+      });
+    });
+    return true;
   } else if (msg.type === "enrollOne") {
     // Async: keep the message channel open with `return true`.
     enrollOneOffer(msg.token, msg.offerId)
@@ -460,11 +468,15 @@ async function checkForUpdate(force) {
         notes: (data.body || "").slice(0, 400),
         checkedAt: Date.now(),
       };
-      chrome.storage.local.set({ updateInfo: info });
+      await new Promise((r) =>
+        chrome.storage.local.set({ updateInfo: info }, r)
+      );
 
       // Notify once per new version (avoid nagging every check).
-      chrome.storage.local.get({ notifiedVersion: "" }, (r) => {
-        if (r.notifiedVersion === latest) return;
+      const { notifiedVersion } = await new Promise((r) =>
+        chrome.storage.local.get({ notifiedVersion: "" }, r)
+      );
+      if (notifiedVersion !== latest) {
         chrome.storage.local.set({ notifiedVersion: latest });
         try {
           chrome.notifications.create("amexAutoAdd_update_" + latest, {
@@ -475,10 +487,12 @@ async function checkForUpdate(force) {
             priority: 1,
           });
         } catch (_) {}
-      });
+      }
     } else {
       // Up to date: clear any stale banner.
-      chrome.storage.local.remove("updateInfo");
+      await new Promise((r) =>
+        chrome.storage.local.remove("updateInfo", r)
+      );
     }
   } catch (_) {
     /* offline / transient — try again next alarm */

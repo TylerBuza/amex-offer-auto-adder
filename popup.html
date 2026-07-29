@@ -218,6 +218,30 @@
         cursor: pointer;
         padding: 0;
       }
+      .update-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .check-btn {
+        flex: none;
+        font-size: 12px;
+        font-weight: 600;
+        color: #006fcf;
+        background: #eef5fc;
+        border: 1px solid #cfe2f5;
+        border-radius: 6px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      .check-btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .update-note {
+        font-size: 11px;
+        color: #999;
+      }
     </style>
   </head>
   <body>
@@ -274,6 +298,13 @@
       <div class="footer">
         <span class="total" id="total"></span>
         <button class="clear" id="clear">Clear history</button>
+      </div>
+
+      <hr />
+
+      <div class="update-row">
+        <button class="check-btn" id="checkUpdate">Check for updates</button>
+        <span class="update-note" id="updateStatus">Auto-checks every 12 hours</span>
       </div>
     </div>
     <script src="popup.js"></script>
