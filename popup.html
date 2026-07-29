@@ -23,6 +23,8 @@
         --banner-text-strong: #5a4400;
         --scroll-thumb: #c3ccd6;
         --scroll-thumb-hover: #a8b3bf;
+        --added-bg: #e3f3e7;
+        --added-text: #2e7d3a;
       }
       [data-theme="dark"] {
         --bg: #2a3240;
@@ -44,6 +46,8 @@
         --banner-text-strong: #f5e6b0;
         --scroll-thumb: #4a566a;
         --scroll-thumb-hover: #5a6980;
+        --added-bg: #26382b;
+        --added-text: #6bbf7a;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
@@ -66,6 +70,8 @@
           --banner-text-strong: #f5e6b0;
           --scroll-thumb: #4a566a;
           --scroll-thumb-hover: #5a6980;
+          --added-bg: #26382b;
+          --added-text: #6bbf7a;
         }
       }
       body {
@@ -302,6 +308,28 @@
         color: var(--text-muted);
         padding: 6px 0;
       }
+      .section-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+      .section-toggle .chev {
+        transition: transform 0.15s ease;
+        font-size: 12px;
+      }
+      .section-toggle.open .chev {
+        transform: rotate(90deg);
+      }
       .search-input {
         width: 100%;
         box-sizing: border-box;
@@ -355,8 +383,8 @@
         border-radius: 4px;
       }
       .offer-tag.added {
-        background: #2e9b3f;
-        color: #fff;
+        background: var(--added-bg);
+        color: var(--added-text);
       }
       .offer-tag.eligible {
         background: var(--accent-soft);
@@ -485,15 +513,20 @@
 
       <hr />
 
-      <div class="section-title">Search my offers</div>
-      <input
-        type="text"
-        id="offerSearch"
-        class="search-input"
-        placeholder="Search merchants (e.g. Delta, Whole Foods)…"
-        autocomplete="off"
-      />
-      <div class="search-results" id="offerResults"></div>
+      <button class="section-toggle" id="searchToggle" type="button">
+        <span>Search my offers <span id="offerTotalCount"></span></span>
+        <span class="chev" id="searchChev">▸</span>
+      </button>
+      <div class="search-wrap" id="searchWrap" style="display: none">
+        <input
+          type="text"
+          id="offerSearch"
+          class="search-input"
+          placeholder="Search merchants (e.g. Delta, Whole Foods)…"
+          autocomplete="off"
+        />
+        <div class="search-results" id="offerResults"></div>
+      </div>
 
       <hr />
 

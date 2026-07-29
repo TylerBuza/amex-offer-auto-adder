@@ -21,6 +21,10 @@ const headsUpToggle = $("headsUpToggle");
 const cacheInfo = $("cacheInfo");
 const offerSearch = $("offerSearch");
 const offerResults = $("offerResults");
+const searchToggle = $("searchToggle");
+const searchWrap = $("searchWrap");
+const searchChev = $("searchChev");
+const offerTotalCount = $("offerTotalCount");
 const checkUpdateBtn = $("checkUpdate");
 const updateStatus = $("updateStatus");
 const themeBtn = $("themeBtn");
@@ -393,7 +397,8 @@ async function refresh() {
     return;
   }
   runNow.disabled = false;
-  hint.textContent = "Ready on Amex (works from any page, incl. dashboard).";
+  hint.textContent =
+    "Connected to American Express. Ready to add offers from any page.";
   const state = await ask(tab.id, { type: "getState" });
   if (state) {
     renderLive(state);
@@ -575,8 +580,23 @@ function renderOffers(query) {
 async function loadOffers() {
   const { offerList } = await getStorage({ offerList: [] });
   allOffers = Array.isArray(offerList) ? offerList : [];
+  // Show the total count next to the collapsed header.
+  const uniq = dedupeOffers(allOffers).length;
+  if (offerTotalCount)
+    offerTotalCount.textContent = uniq ? "(" + uniq + ")" : "";
   renderOffers(offerSearch.value || "");
 }
+
+let searchOpen = false;
+function setSearchOpen(open) {
+  searchOpen = open;
+  searchWrap.style.display = open ? "block" : "none";
+  searchToggle.classList[open ? "add" : "remove"]("open");
+  if (searchChev) searchChev.textContent = open ? "▾" : "▸";
+  if (open) offerSearch.focus();
+}
+
+searchToggle.addEventListener("click", () => setSearchOpen(!searchOpen));
 
 offerSearch.addEventListener("input", () => renderOffers(offerSearch.value));
 
