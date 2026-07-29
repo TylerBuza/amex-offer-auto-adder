@@ -36,7 +36,12 @@
   if (NEVER_ON.has(currentDomain)) return;
 
   chrome.storage.local.get(
-    { offerCatalog: {}, headsUpEnabled: true, headsUpDismissed: {} },
+    {
+      offerCatalog: {},
+      headsUpEnabled: true,
+      headsUpDismissed: {},
+      theme: "auto",
+    },
     (res) => {
       if (!res.headsUpEnabled) return;
       const entries = (res.offerCatalog || {})[currentDomain];
@@ -51,16 +56,25 @@
           return;
       } catch (_) {}
 
+      // Resolve the theme: explicit light/dark, or "auto" -> follow the site.
+      let dark = res.theme === "dark";
+      if (res.theme !== "dark" && res.theme !== "light") {
+        dark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+      }
+
       // Prefer showing a not-yet-added offer (actionable) over an enrolled one.
       const notAdded = entries.filter((e) => !e.enrolled);
       const primary = (notAdded[0] || entries[0]);
-      showCard(primary, entries.length);
+      showCard(primary, entries.length, dark);
     }
   );
 
-  function showCard(offer, total) {
+  function showCard(offer, total, dark) {
     const wrap = document.createElement("div");
     wrap.id = "amex-merchant-notice";
+    if (dark) wrap.className = "amn-dark";
     const added = offer.enrolled;
     const lowConf = offer.confidence && offer.confidence <= 1;
 
@@ -96,13 +110,23 @@
     const style = document.createElement("style");
     style.textContent = `
       #amex-merchant-notice {
+        --amn-bg:#fff; --amn-text:#1a1a1a; --amn-title:#006fcf;
+        --amn-detail:#333; --amn-meta:#666; --amn-muted:#888; --amn-x:#999;
+        --amn-menu-bg:#fff; --amn-menu-border:#e2e2e2; --amn-menu-hover:#f2f6fb;
+        --amn-accent:#006fcf;
         position: fixed; z-index: 2147483647; right: 20px; bottom: 20px;
-        width: 300px; background: #fff; color: #1a1a1a;
+        width: 300px; background: var(--amn-bg); color: var(--amn-text);
         font-family: -apple-system, Segoe UI, Roboto, sans-serif;
         border-radius: 12px; box-shadow: 0 10px 34px rgba(0,0,0,.28);
-        border-top: 4px solid #006fcf;
+        border-top: 4px solid var(--amn-accent);
         transform: translateY(16px); opacity: 0;
         transition: opacity .25s ease, transform .25s ease;
+      }
+      #amex-merchant-notice.amn-dark {
+        --amn-bg:#2a3240; --amn-text:#e8eef7; --amn-title:#5aa9ee;
+        --amn-detail:#bcc8d8; --amn-meta:#93a3ba; --amn-muted:#93a3ba; --amn-x:#93a3ba;
+        --amn-menu-bg:#323b4b; --amn-menu-border:#3f4b5e; --amn-menu-hover:#3a4658;
+        --amn-accent:#5aa9ee;
       }
       #amex-merchant-notice.amn-show { transform: translateY(0); opacity: 1; }
       #amex-merchant-notice .amn-head {
@@ -112,39 +136,40 @@
         background: #006fcf; color: #fff; font-weight: 800; font-size: 10px;
         letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
       }
-      #amex-merchant-notice .amn-title { font-size: 12px; font-weight: 600; color:#006fcf; flex: 1; }
+      #amex-merchant-notice .amn-title { font-size: 12px; font-weight: 600; color:var(--amn-title); flex: 1; }
       #amex-merchant-notice .amn-dismiss { position: relative; }
       #amex-merchant-notice .amn-x {
         border: 0; background: none; font-size: 20px; line-height: 1;
-        color: #999; cursor: pointer; padding: 0 2px;
+        color: var(--amn-x); cursor: pointer; padding: 0 2px;
       }
       #amex-merchant-notice .amn-menu {
         display: none; position: absolute; top: 24px; right: 0; z-index: 1;
-        background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
-        box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 6px; width: 130px;
+        background: var(--amn-menu-bg); border: 1px solid var(--amn-menu-border);
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.28); padding: 6px; width: 130px;
       }
       #amex-merchant-notice .amn-menu.amn-open { display: block; }
       #amex-merchant-notice .amn-menu-label {
-        font-size: 10px; color: #888; padding: 2px 4px 4px;
+        font-size: 10px; color: var(--amn-muted); padding: 2px 4px 4px;
       }
       #amex-merchant-notice .amn-menu button {
         display: block; width: 100%; text-align: left; border: 0;
-        background: none; padding: 6px 8px; font-size: 12px; color: #1a1a1a;
+        background: none; padding: 6px 8px; font-size: 12px; color: var(--amn-text);
         cursor: pointer; border-radius: 6px;
       }
-      #amex-merchant-notice .amn-menu button:hover { background: #f2f6fb; }
-      #amex-merchant-notice .amn-forever { color: #c0392b; }
+      #amex-merchant-notice .amn-menu button:hover { background: var(--amn-menu-hover); }
+      #amex-merchant-notice .amn-forever { color: #e06666 !important; }
       #amex-merchant-notice .amn-merchant { font-size: 15px; font-weight: 700; padding: 6px 12px 0; }
-      #amex-merchant-notice .amn-detail { font-size: 13px; padding: 4px 12px 0; color:#333; }
-      #amex-merchant-notice .amn-meta { font-size: 11px; color:#666; padding: 6px 12px 0; }
+      #amex-merchant-notice .amn-detail { font-size: 13px; padding: 4px 12px 0; color:var(--amn-detail); }
+      #amex-merchant-notice .amn-meta { font-size: 11px; color:var(--amn-meta); padding: 6px 12px 0; }
       #amex-merchant-notice .amn-add {
         display: block; width: calc(100% - 24px); margin: 10px 12px;
-        padding: 9px; border: 0; border-radius: 7px; background: #006fcf;
+        padding: 9px; border: 0; border-radius: 7px; background: var(--amn-accent);
         color: #fff; font-weight: 700; cursor: pointer;
       }
       #amex-merchant-notice .amn-add:disabled { background: #9bc4e6; cursor: default; }
       #amex-merchant-notice .amn-add.amn-done { background: #2e9b3f; }
-      #amex-merchant-notice .amn-more { font-size: 11px; color:#888; padding: 0 12px 10px; }
+      #amex-merchant-notice .amn-more { font-size: 11px; color:var(--amn-muted); padding: 0 12px 10px; }
     `;
     (document.head || document.documentElement).appendChild(style);
     (document.body || document.documentElement).appendChild(wrap);
