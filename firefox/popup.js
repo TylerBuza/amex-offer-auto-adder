@@ -209,7 +209,13 @@ async function renderStats() {
   document.getElementById("s-today").textContent = cToday;
   document.getElementById("s-week").textContent = cWeek;
   document.getElementById("s-month").textContent = cMonth;
-  document.getElementById("s-all").textContent = history.length;
+  // "All time" = distinct offers currently added to your cards (from the
+  // catalog), falling back to the history count before the catalog loads.
+  const currentlyAdded = dedupeOffers(
+    (allOffers || []).filter((o) => o.enrolled)
+  ).length;
+  document.getElementById("s-all").textContent =
+    currentlyAdded || history.length;
 
   const last = history[history.length - 1];
   document.getElementById("lastAdded").textContent = last
@@ -626,14 +632,23 @@ function renderOffers(query) {
   }
 }
 
+// True if an offer's expiry date is in the past.
+function isExpired(o) {
+  return o && o.expiresAt && o.expiresAt < Date.now();
+}
+
 async function loadOffers() {
   const { offerList } = await getStorage({ offerList: [] });
-  allOffers = Array.isArray(offerList) ? offerList : [];
+  const raw = Array.isArray(offerList) ? offerList : [];
+  // Hide expired offers everywhere.
+  allOffers = raw.filter((o) => !isExpired(o));
   // Show the total count next to the collapsed header.
   const uniq = dedupeOffers(allOffers).length;
   if (offerTotalCount)
     offerTotalCount.textContent = uniq ? "(" + uniq + ")" : "";
   renderOffers(offerSearch.value || "");
+  // Re-render stats now that the catalog is loaded (updates "All time").
+  renderStats().catch(() => {});
 }
 
 let searchOpen = false;

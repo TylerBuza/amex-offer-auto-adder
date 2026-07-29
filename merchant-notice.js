@@ -44,8 +44,13 @@
     },
     (res) => {
       if (!res.headsUpEnabled) return;
-      const entries = (res.offerCatalog || {})[currentDomain];
+      let entries = (res.offerCatalog || {})[currentDomain];
       if (!entries || !entries.length) return;
+
+      // Drop expired offers so they never show up.
+      const now = Date.now();
+      entries = entries.filter((e) => !(e.expiresAt && e.expiresAt < now));
+      if (!entries.length) return;
 
       // Permanently dismissed for this domain ("forever").
       if (res.headsUpDismissed && res.headsUpDismissed[currentDomain]) return;

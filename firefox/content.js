@@ -269,6 +269,28 @@
       .slice(0, 40);
   }
 
+  // Parse an expiry into an end-of-day timestamp (ms), or 0 if unknown.
+  // Handles "Expires 10/1/26", "10/28/2026", ISO dates, and expiration.date.
+  function offerExpiresAt(offer) {
+    // Prefer a structured date field if present.
+    const structured = getPath(offer, "expiration.date") || offer.expirationDate;
+    if (structured) {
+      const t = Date.parse(structured);
+      if (!isNaN(t)) return t;
+    }
+    const text = String(getPath(offer, "expiration.text") || "");
+    // M/D/YY or M/D/YYYY
+    const m = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (m) {
+      let [, mo, d, y] = m;
+      y = parseInt(y, 10);
+      if (y < 100) y += 2000;
+      const dt = new Date(y, parseInt(mo, 10) - 1, parseInt(d, 10), 23, 59, 59);
+      if (!isNaN(dt.getTime())) return dt.getTime();
+    }
+    return 0; // unknown -> treat as non-expiring (keep it)
+  }
+
   // ---- Merchant domain extraction --------------------------------------------
   // A tiny map for common name→domain mismatches (kept intentionally small).
   const DOMAIN_OVERRIDES = {
@@ -385,6 +407,7 @@
       name: offerName(offer),
       detail: offerDetail(offer),
       expiry: offerExpiry(offer),
+      expiresAt: offerExpiresAt(offer),
       card: card.name,
       offerId: offer.offerId,
       token: card.token,
