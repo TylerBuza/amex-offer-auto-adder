@@ -405,6 +405,27 @@
         color: var(--text-muted);
         margin-top: 5px;
       }
+      .offer-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--accent);
+        background: var(--accent-soft);
+        border: 1px solid var(--accent-border);
+        border-radius: 6px;
+        text-decoration: none;
+      }
+      .offer-link:hover {
+        text-decoration: underline;
+      }
+      .offer-link::before {
+        content: "🔗";
+        font-size: 11px;
+      }
       .search-count {
         font-size: 11px;
         color: var(--text-muted);

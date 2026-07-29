@@ -555,8 +555,15 @@ function renderOffers(query) {
       : '<span class="offer-tag eligible">Eligible</span>';
     const cards = (o.cards || [o.card]).filter(Boolean).join(", ");
     const link = o.url
-      ? `<div class="meta">🔗 <a href="${escapeHtml(o.url)}" target="_blank" rel="noopener">${escapeHtml(o.domain)}</a></div>`
+      ? `<a class="offer-link" href="${escapeHtml(o.url)}" target="_blank" rel="noopener">${escapeHtml(o.domain)}</a>`
       : "";
+    // Amex's expiry text sometimes already starts with "Expires"; don't double it.
+    let expiryText = "";
+    if (o.expiry) {
+      expiryText = /^expires/i.test(o.expiry.trim())
+        ? o.expiry.trim()
+        : "Expires " + o.expiry.trim();
+    }
     el.innerHTML = `
       <div class="offer-head">
         <span class="offer-name">${escapeHtml(o.name)}</span>
@@ -565,7 +572,7 @@ function renderOffers(query) {
       <div class="offer-details">
         <div>${escapeHtml(o.detail) || "No details available."}</div>
         <div class="meta">${o.enrolled ? "Added to" : "Available on"}: ${escapeHtml(cards)}${
-          o.expiry ? " · Expires " + escapeHtml(o.expiry) : ""
+          expiryText ? " · " + escapeHtml(expiryText) : ""
         }</div>
         ${link}
       </div>`;
