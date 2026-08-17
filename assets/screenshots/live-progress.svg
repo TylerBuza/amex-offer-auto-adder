@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="320" viewBox="0 0 1040 320" role="img" aria-labelledby="title desc">
+  <title id="title">Live offer enrollment progress</title>
+  <desc id="desc">A polished sample notification showing generic card enrollment progress.</desc>
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#deedfb"/>
+    </linearGradient>
+    <linearGradient id="toast" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#006fcf"/>
+      <stop offset="1" stop-color="#0787e8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-40%" width="140%" height="190%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#17324f" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect width="1040" height="320" rx="30" fill="url(#canvas)"/>
+  <circle cx="80" cy="25" r="150" fill="#fff" opacity=".55"/>
+  <circle cx="990" cy="300" r="180" fill="#b9d8f5" opacity=".38"/>
+  <g transform="translate(140 80)" filter="url(#shadow)">
+    <rect width="760" height="160" rx="24" fill="url(#toast)"/>
+    <circle cx="67" cy="80" r="25" fill="#fff" opacity=".18"/>
+    <path d="M55 81l11-11m0 0 13 9m-24 2 14 11m10-13-10 13" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="114" y="70" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Adding Amex offers...</text>
+    <text x="114" y="108" fill="#e8f4ff" font-family="Segoe UI, Arial, sans-serif" font-size="19">Reading Card ending 1234 (2/3)</text>
+    <g transform="translate(648 76)">
+      <circle cx="0" cy="0" r="7" fill="#fff"/>
+      <circle cx="25" cy="0" r="7" fill="#fff" opacity=".62"/>
+      <circle cx="50" cy="0" r="7" fill="#fff" opacity=".28"/>
+    </g>
+  </g>
+  <rect x="866" y="18" width="148" height="34" rx="17" fill="#fff" opacity=".9"/>
+  <text x="940" y="40" text-anchor="middle" fill="#44617d" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">SAMPLE DATA</text>
+</svg>

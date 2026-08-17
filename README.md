@@ -26,18 +26,18 @@ new** to each card.
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="assets/screenshots/popup-dashboard.png" alt="Extension dashboard showing controls, offer totals, and recent activity" width="360"><br>
+      <img src="assets/screenshots/popup-dashboard.svg" alt="Extension dashboard showing controls and generic sample offer totals" width="360"><br>
       <sub><b>Dashboard</b> — controls, totals, and recent activity at a glance</sub>
     </td>
     <td align="center" width="50%">
-      <img src="assets/screenshots/offer-search.png" alt="Offer search results for AMC Plus" width="360"><br>
+      <img src="assets/screenshots/offer-search.svg" alt="Offer search results using generic sample merchant and card data" width="360"><br>
       <sub><b>Offer search</b> — find deals across every enrolled card</sub>
     </td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="assets/screenshots/live-progress.png" alt="Live progress notification while Amex offers are being added" width="494"><br>
+  <img src="assets/screenshots/live-progress.svg" alt="Live progress notification using generic sample card data" width="600"><br>
   <sub><b>Live progress</b> — follow each card as offers are added</sub>
 </p>
 
