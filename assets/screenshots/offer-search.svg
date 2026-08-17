@@ -43,6 +43,4 @@
     <rect x="45" y="588" width="180" height="40" rx="10" fill="#006fcf"/>
     <text x="135" y="614" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Add to card</text>
   </g>
-  <rect x="516" y="16" width="138" height="32" rx="16" fill="#fff" opacity=".88"/>
-  <text x="585" y="37" text-anchor="middle" fill="#44617d" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">SAMPLE DATA</text>
 </svg>

@@ -29,6 +29,4 @@
       <circle cx="50" cy="0" r="7" fill="#fff" opacity=".28"/>
     </g>
   </g>
-  <rect x="866" y="18" width="148" height="34" rx="17" fill="#fff" opacity=".9"/>
-  <text x="940" y="40" text-anchor="middle" fill="#44617d" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">SAMPLE DATA</text>
 </svg>

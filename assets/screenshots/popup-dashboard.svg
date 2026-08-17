@@ -65,6 +65,4 @@
     <text x="93" y="631" fill="#5aa9ee" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Search my offers (312)</text>
     <path d="M444 617l9 6-9 6Z" fill="#5aa9ee"/>
   </g>
-  <rect x="516" y="16" width="138" height="32" rx="16" fill="#fff" opacity=".88"/>
-  <text x="585" y="37" text-anchor="middle" fill="#44617d" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">SAMPLE DATA</text>
 </svg>
