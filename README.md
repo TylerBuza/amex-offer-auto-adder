@@ -21,6 +21,26 @@ Amex page (the dashboard is fine), covers **every card** on your account
 including authorized-user cards, and only counts offers that were **actually
 new** to each card.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/screenshots/popup-dashboard.png" alt="Extension dashboard showing controls, offer totals, and recent activity" width="360"><br>
+      <sub><b>Dashboard</b> — controls, totals, and recent activity at a glance</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/screenshots/offer-search.png" alt="Offer search results for AMC Plus" width="360"><br>
+      <sub><b>Offer search</b> — find deals across every enrolled card</sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="assets/screenshots/live-progress.png" alt="Live progress notification while Amex offers are being added" width="494"><br>
+  <sub><b>Live progress</b> — follow each card as offers are added</sub>
+</p>
+
 ## Features
 
 - **One click, every card** — reads all your cards and enrolls every eligible
