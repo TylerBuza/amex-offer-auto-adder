@@ -547,6 +547,17 @@
 
           enrolled++;
           if (ok) {
+            // Keep both cached views card-specific after successful enrollment.
+            for (const entry of offerList) {
+              if (entry.token === card.token && entry.offerId === offer.offerId)
+                entry.enrolled = true;
+            }
+            for (const entries of Object.values(catalog)) {
+              for (const entry of entries) {
+                if (entry.token === card.token && entry.offerId === offer.offerId)
+                  entry.enrolled = true;
+              }
+            }
             stats.added++;
             cardAdded++;
             recordAdd(offerName(offer), card.name);

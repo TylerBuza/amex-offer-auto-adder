@@ -231,8 +231,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   } else if (msg.type === "enrollOne") {
     // Async: keep the message channel open with `return true`.
     enrollOneOffer(msg.token, msg.offerId)
-      .then((r) => {
-        if (r.ok) markEnrolledInCatalog(msg.offerId);
+      .then(async (r) => {
+        if (r.ok) await markEnrolledInCatalog(msg.token, msg.offerId);
         sendResponse(r);
       })
       .catch((e) => sendResponse({ ok: false, reason: String(e && e.message) }));
@@ -241,22 +241,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 // Flip an offer's cached "enrolled" flag after a successful Add-now.
-function markEnrolledInCatalog(offerId) {
-  try {
-    chrome.storage.local.get({ offerCatalog: {} }, (res) => {
-      const cat = res.offerCatalog || {};
-      let changed = false;
-      for (const host of Object.keys(cat)) {
-        for (const e of cat[host]) {
-          if (e.offerId === offerId && !e.enrolled) {
-            e.enrolled = true;
-            changed = true;
-          }
-        }
+async function markEnrolledInCatalog(token, offerId) {
+  const { offerCatalog = {}, offerList = [] } = await chrome.storage.local.get({
+    offerCatalog: {}, offerList: [],
+  });
+  let changed = false;
+  for (const entries of [...Object.values(offerCatalog), offerList]) {
+    for (const entry of entries) {
+      if (entry.token === token && entry.offerId === offerId && !entry.enrolled) {
+        entry.enrolled = true;
+        changed = true;
       }
-      if (changed) chrome.storage.local.set({ offerCatalog: cat });
-    });
-  } catch (_) {}
+    }
+  }
+  if (changed) await chrome.storage.local.set({ offerCatalog, offerList });
 }
 
 // ---- Merchant heads-up content-script registration -------------------------

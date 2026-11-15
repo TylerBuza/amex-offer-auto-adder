@@ -99,7 +99,8 @@ session cookies (`credentials: "include"`) — no passwords, no tokens, and your
 account/offer data never leaves your browser.
 
 The only network call the extension makes to its own server is a single
-**anonymous install ping** (see [Privacy](#privacy)).
+**pseudonymous install ping** (see [Privacy](#privacy)). Sideloaded builds also
+check GitHub for release updates; the store build uses Chrome's update service.
 
 1. `GET /api/servicing/v1/member` → every card's `account_token`.
 2. Per card, `POST ReadOffersHubPresentation.web.v1`
@@ -152,8 +153,21 @@ Amex changes their internal endpoints from time to time. If nothing gets added:
 - On **first install only**, the extension sends one anonymous ping to
   `buza.dev` so the author can count installs. It contains a **random ID**
   (generated locally, not linked to you), the extension version, and your
-  browser name. No personal data, no account data, no browsing history.
-- Nothing is sent on updates, runs, or when browsing merchant sites.
+  browser name. The server also records a timestamp and a country code when
+  available; hosting infrastructure receives ordinary IP/request metadata.
+  No Amex account data or browsing history are sent to the developer.
+- No install-measurement events are sent on updates, runs, or merchant visits.
+
+See the full [privacy policy](PRIVACY.md) for storage, retention, and data use.
+
+## Chrome Web Store preparation
+
+The store edition is being prepared for review; it is not published yet.
+Run `node scripts/build-store.mjs` for the store-specific package and
+`node --test tests/offers.test.mjs` for enrollment/search regression checks.
+Listing copy, permission justifications, and reviewer instructions are in
+[`store/LISTING.md`](store/LISTING.md). The store package uses Chrome-managed
+updates and omits the sideloaded ZIP updater and its permissions.
 
 ## Disclaimer
 

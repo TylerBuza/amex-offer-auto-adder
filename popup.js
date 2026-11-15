@@ -544,11 +544,14 @@ function findOfferByName(name) {
   );
 }
 
-// Merge duplicate offers (same name+detail) across cards into one entry.
+// Only merge the same offer ID on the same account. Similar descriptions do
+// not establish offer identity, and enrollment is always card-specific.
 function dedupeOffers(list) {
   const map = new Map();
-  for (const o of list) {
-    const key = (o.name || "") + "|" + (o.detail || "");
+  for (const [index, o] of list.entries()) {
+    const key = o.token && o.offerId
+      ? JSON.stringify([o.token, o.offerId])
+      : "unidentified:" + index;
     if (!map.has(key)) {
       map.set(key, { ...o, cards: [o.card], enrolled: o.enrolled });
     } else {
