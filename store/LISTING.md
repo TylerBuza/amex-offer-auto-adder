@@ -1,5 +1,20 @@
 # Chrome Web Store submission
 
+## Submission record
+
+- Submitted November 15, 2026; dashboard confirmed **Pending review**.
+- Version: **2.0.1**; publisher: **Tyler Buza**.
+- Item ID: `binllhimembkpanceinpeogelljioehd`.
+- Visibility: public; free of charge; all regions.
+- Automatic publication after approval: enabled.
+- Uploaded: store ZIP, 128px icon, two 1280x800 screenshots.
+- Saved: listing, privacy disclosures, permission justifications, privacy URL,
+  and reviewer instructions (no shared financial-account credentials).
+- Google displayed its broad-host-permission extended-review notice.
+- ZIP SHA-256: `3ac210f409b51ffca2d9dc02a12ee4f813670508b51f16bef1a0928bfea8cc93`.
+- Public store URL (available after publication):
+  https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd
+
 ## Store listing
 
 - Name: Amex Offer Auto-Adder

@@ -162,7 +162,8 @@ See the full [privacy policy](PRIVACY.md) for storage, retention, and data use.
 
 ## Chrome Web Store preparation
 
-The store edition is being prepared for review; it is not published yet.
+The store edition (v2.0.1) was submitted on November 15, 2026 and is pending
+Chrome Web Store review. It is set to publish automatically after approval.
 Run `node scripts/build-store.mjs` for the store-specific package and
 `node --test tests/offers.test.mjs` for enrollment/search regression checks.
 Listing copy, permission justifications, and reviewer instructions are in
