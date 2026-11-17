@@ -3,6 +3,7 @@
 ## Submission record
 
 - Submitted November 15, 2026; dashboard confirmed **Pending review**.
+- Public listing verified live on November 17, 2026.
 - Version: **2.0.1**; publisher: **Tyler Buza**.
 - Item ID: `binllhimembkpanceinpeogelljioehd`.
 - Visibility: public; free of charge; all regions.
@@ -12,10 +13,14 @@
   and reviewer instructions (no shared financial-account credentials).
 - Google displayed its broad-host-permission extended-review notice.
 - ZIP SHA-256: `3ac210f409b51ffca2d9dc02a12ee4f813670508b51f16bef1a0928bfea8cc93`.
-- Public store URL (available after publication):
+- Public store URL:
   https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd
 
 ## Store listing
+
+The reminder-focused copy below is prepared for the next listing update; it has
+not yet been submitted. Use `dist/store-assets/00-merchant-reminder.png` as the
+lead screenshot, followed by the dashboard and search screenshots.
 
 - Name: Amex Offer Auto-Adder
 - Publisher: Tyler Buza
@@ -29,29 +34,46 @@
 
 ### Short description
 
-Add eligible Amex Offers across your cards, search saved offers, and see merchant reminders. Independent tool by Tyler Buza.
+Get Amex Offer reminders on matching shopping sites, auto-add eligible offers across your cards, and search saved deals.
 
 ### Detailed description
 
-Manage eligible American Express merchant offers from one place.
+Get an Amex Offer reminder while you shop.
 
-Amex Offer Auto-Adder uses your existing signed-in American Express session to
-enroll eligible offers across the cards returned by your account. Click Add
-offers now for a manual run, or use Auto-add on visit for automatic enrollment.
+Visit a matching merchant's website and see a small on-page reminder when your
+cached Amex Offers include a deal for that site. See the offer, its card, and the
+expiration date without switching back to Amex to look it up.
 
-Features:
-- Add eligible merchant offers across supported cards, including supplementary
-  cards returned by American Express.
-- Search locally cached eligible and added offers, with card-specific status,
-  deal details, and expiration dates. Expired offers are hidden.
-- See a reminder on matching merchant websites based on your cached offers.
-- View local enrollment counts, recent additions, and per-card run details.
-- Follow live progress and use light, dark, or automatic appearance.
+MERCHANT-SITE OFFER REMINDERS
+- See an "Amex Offer available" reminder on matching shopping sites.
+- Check the deal and which card it is on before you pay.
+- See whether the displayed offer is already added. If it is still eligible,
+  use "Add to card now" from the reminder while signed in to Amex.
+- Hide reminders for the current session or permanently for a site, or turn
+  Merchant offer heads-up off in the extension.
+
+Run the extension on Amex first to cache your offers. Reminders use that local
+catalog, not a live search of every offer: availability and site matching may
+vary, and expired offers are hidden. Lower-confidence site matches are labeled
+"Possible Amex Offer." These are on-page reminders, not desktop notifications.
+
+AUTO-ADD ACROSS YOUR CARDS
+Use your existing signed-in American Express session to enroll eligible merchant
+offers across the cards returned by your account, including supported
+supplementary cards. Click Add offers now for a manual run, or use Auto-add on
+visit for automatic enrollment.
+
+SEARCH AND TRACK YOUR OFFERS
+Search cached eligible and added offers with card-specific status, deal details,
+and expiration dates. View local enrollment counts, recent additions, per-card
+run details, and live progress. Choose light, dark, or automatic appearance.
 
 Getting started:
 1. Sign in at global.americanexpress.com.
 2. Open the extension and click Add offers now.
-3. After a run, search your cached offers or visit a matching merchant website.
+3. Keep Merchant offer heads-up enabled.
+4. Visit a matching merchant website to see its offer reminder, or search your
+   offers from the extension popup.
 
 Auto-add on visit and merchant reminders are enabled on first install and can be
 turned off in the popup. Search reflects cached eligible/added offers, not

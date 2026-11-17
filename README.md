@@ -1,8 +1,8 @@
 <h1 align="center">Amex Offer Auto-Adder</h1>
 
 <p align="center">
-  A Chrome extension that instantly enrolls you in <b>every eligible Amex Offer
-  across all your cards</b> — no scrolling, no clicking through tiles.
+  Get <b>Amex Offer reminders while shopping on matching merchant sites</b>,
+  automatically add eligible offers across your cards, and search your saved deals.
 </p>
 
 <p align="center">
@@ -22,6 +22,11 @@ including authorized-user cards, and only counts offers that were **actually
 new** to each card.
 
 ## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/merchant-reminder.png" alt="An on-page Amex Offer reminder on a fictional merchant website, showing the deal, card, and Add to card now button" width="800"><br>
+  <sub><b>Offer reminders while you shop</b> — see a cached deal on a matching merchant's site</sub>
+</p>
 
 <table>
   <tr>
@@ -43,6 +48,10 @@ new** to each card.
 
 ## Features
 
+- **Offer reminders while you shop** — after a run caches your offers, visit a
+  matching merchant website to see the deal, card, and expiration date in an
+  on-page reminder. Already-added offers show their status; eligible offers
+  include **Add to card now**. Hide reminders per site or disable them in the popup.
 - **One click, every card** — reads all your cards and enrolls every eligible
   merchant offer, including supplementary/authorized-user cards.
 - **Works anywhere on Amex** — no need to open the Offers page or scroll.
@@ -54,19 +63,18 @@ new** to each card.
   what's happening in real time.
 - **Stats & history** — today / week / month / all-time counters, a per-card
   breakdown of the last run, and a log of recently added offers.
-- **Merchant heads-up** — after a run caches your offers, visiting a merchant's
-  website (e.g. `glassesusa.com`) pops a small "Amex Offer available here" card
-  with the deal, the card it's on, and an **Add to card now** button if you
-  haven't enrolled yet.
 - **Safe by default** — stops immediately on any rate-limit or logged-out
   response instead of hammering the API.
 
 ## Install
 
-> Loaded unpacked — not on any extension store. Chrome and Firefox both
-> supported. Grab the matching zip from the [latest release](../../releases/latest).
+### Chrome Web Store
 
-### Chrome / Edge / Brave
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd),
+then pin the extension and sign in to Amex. Run **Add offers now** to cache your
+offers, and leave **Merchant offer heads-up** enabled for on-site reminders.
+
+### Manual install — Chrome / Edge / Brave
 
 1. Download `amex-offer-auto-adder-vX.Y.Z.zip` from the latest release and unzip it.
 2. Open `chrome://extensions`.
@@ -162,8 +170,8 @@ See the full [privacy policy](PRIVACY.md) for storage, retention, and data use.
 
 ## Chrome Web Store preparation
 
-The store edition (v2.0.1) was submitted on November 15, 2026 and is pending
-Chrome Web Store review. It is set to publish automatically after approval.
+The store edition (v2.0.1) is now
+[available on Chrome Web Store](https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd).
 Run `node scripts/build-store.mjs` for the store-specific package and
 `node --test tests/offers.test.mjs` for enrollment/search regression checks.
 Listing copy, permission justifications, and reviewer instructions are in
