@@ -1,195 +1,87 @@
 <h1 align="center">Amex Offer Auto-Adder</h1>
 
-<p align="center">
-  Get <b>Amex Offer reminders while shopping on matching merchant sites</b>,
-  automatically add eligible offers across your cards, and search your saved deals.
-</p>
+<p align="center"><strong>See the offer. Know which card to use.</strong><br>
+Get a reminder on a merchant’s site when one of your cards has a matching Amex Offer.</p>
 
 <p align="center">
-  <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-006fcf">
-  <a href="https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd"><img alt="Install from Chrome Web Store" src="https://img.shields.io/badge/Chrome_Web_Store-Install-006fcf?logo=googlechrome&logoColor=white"></a>
-  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
-  <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-none-lightgrey">
+  <a href="https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd"><img alt="Install from the Chrome Web Store" src="https://img.shields.io/badge/Chrome_Web_Store-Install-006fcf?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>
 </p>
-
----
+<p align="center"><a href="#firefox">Firefox install</a> · <a href="#quick-start">Quick start</a> · <a href="PRIVACY.md">Privacy policy</a></p>
 
 <p align="center">
-  <a href="https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd"><b>Install from Chrome Web Store</b></a>
+  <a href="assets/screenshots/merchant-reminder.png"><img src="assets/screenshots/merchant-reminder.png" alt="A merchant page with a reminder in the lower right: spend $50, get $10 back on Example Card, with an Add to card now button." width="900"></a>
 </p>
 
-Amex Offers make you add each deal to your card one tile at a time — dozens of
-them, on every card. This extension does it all in one click by talking to
-Amex's own offers API with your existing logged-in session. It works from **any**
-Amex page (the dashboard is fine), covers **every card** on your account
-including authorized-user cards, and only counts offers that were **actually
-new** to each card.
+That **“Spend $50, get $10 back”** reminder appears on the shop’s page itself. If the offer is already on a card, the reminder tells you which one. If it’s eligible but not yet added, choose **Add to card now** while signed in to Amex. Don’t want reminders at that shop? Use **×** to hide them for the session or permanently for that site.
 
-## Screenshots
+## Quick start
 
-<p align="center">
-  <img src="assets/screenshots/merchant-reminder.png" alt="An on-page Amex Offer reminder on a fictional merchant website, showing the deal, card, and Add to card now button" width="800"><br>
-  <sub><b>Offer reminders while you shop</b> — see a cached deal on a matching merchant's site</sub>
-</p>
+1. **Install.** [Add the extension to Chrome][store] and pin it to your toolbar, or use the [Firefox instructions](#firefox) below.
+2. **Load your offers.** Sign in to your US [Amex dashboard](https://global.americanexpress.com/). **Auto-add on visit** is on by default. You can also start a run from the popup with **Add offers now**. The run enrolls eligible offers and saves the offer list for search and reminders.
+3. **Visit a merchant.** Leave **Merchant offer heads-up** on. When a site matches a saved offer, the reminder shows the deal, its card, and the expiry date if available. A less certain match is labeled **Possible Amex Offer**.
 
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="assets/screenshots/popup-dashboard.svg" alt="Extension dashboard showing controls and generic sample offer totals" width="360"><br>
-      <sub><b>Dashboard</b> — controls, totals, and recent activity at a glance</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="assets/screenshots/offer-search.svg" alt="Offer search results using generic sample merchant and card data" width="360"><br>
-      <sub><b>Offer search</b> — find deals across every enrolled card</sub>
-    </td>
-  </tr>
-</table>
+## Inside the extension
 
-<p align="center">
-  <img src="assets/screenshots/live-progress.svg" alt="Live progress notification using generic sample card data" width="600"><br>
-  <sub><b>Live progress</b> — follow each card as offers are added</sub>
-</p>
+**Search by merchant.** Open **Search my offers**, type a name, and expand a result. In the Chrome Web Store edition, **Added** and **Eligible** are tracked separately for each card—even when two deals have the same description. Search shows the last run’s active offers; for a redeemed statement credit, check Amex’s savings history.
 
-## Features
+**Follow a run.** The toolbar icon and on-page progress message show when enrollment is running. The popup shows recent additions and a breakdown by card, including supplementary cards returned by Amex.
 
-- **Offer reminders while you shop** — after a run caches your offers, visit a
-  matching merchant website to see the deal, card, and expiration date in an
-  on-page reminder. Already-added offers show their status; eligible offers
-  include **Add to card now**. Hide reminders per site or disable them in the popup.
-- **One click, every card** — reads all your cards and enrolls every eligible
-  merchant offer, including supplementary/authorized-user cards.
-- **Works anywhere on Amex** — no need to open the Offers page or scroll.
-- **Fast** — direct API calls, not DOM automation. Hundreds of offers in
-  seconds, with randomized pacing to stay gentle.
-- **Honest counts** — de-dupes against offers already on each card, so "added"
-  means genuinely new enrollments.
-- **Live progress** — an on-page toast and an animated toolbar status wheel show
-  what's happening in real time.
-- **Stats & history** — today / week / month / all-time counters, a per-card
-  breakdown of the last run, and a log of recently added offers.
-- **Safe by default** — stops immediately on any rate-limit or logged-out
-  response instead of hammering the API.
+<details>
+<summary><strong>Screenshots: search, dashboard, and live progress</strong></summary>
+
+#### One merchant, two cards
+
+![Expanded offer search with an added offer and a separate eligible result for the same merchant](assets/screenshots/search-by-card.png)
+
+#### Dashboard
+
+<img src="assets/screenshots/popup-dashboard.svg" alt="Dashboard with switches for automatic enrollment and merchant reminders, plus offer totals and search." width="390">
+
+#### Enrollment in progress
+
+<img src="assets/screenshots/live-progress.svg" alt="On-page progress message showing which card is being read." width="560">
+
+</details>
 
 ## Install
 
-### Chrome Web Store
-
-[Install from Chrome Web Store](https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd),
-then pin the extension and sign in to Amex. Run **Add offers now** to cache your
-offers, and leave **Merchant offer heads-up** enabled for on-site reminders.
-
-### Manual install — Chrome / Edge / Brave
-
-1. Download `amex-offer-auto-adder-vX.Y.Z.zip` from the latest release and unzip it.
-2. Open `chrome://extensions`.
-3. Turn on **Developer mode** (top-right).
-4. Click **Load unpacked** and select the unzipped folder (the one with `manifest.json`).
-5. Pin the extension.
+**Chrome:** [Install from the Chrome Web Store][store]. Chrome handles updates.
 
 ### Firefox
 
-1. Download `amex-offer-auto-adder-firefox-vX.Y.Z.zip` from the latest release and unzip it.
-2. Open `about:debugging#/runtime/this-firefox`.
-3. Click **Load Temporary Add-on…** and select the `manifest.json` inside the unzipped folder.
-4. (Temporary loads clear when Firefox closes; for a permanent install the add-on must be signed via AMO.)
+1. From the [latest GitHub release][release], download the **Firefox ZIP** (`amex-offer-auto-adder-firefox-v…zip`) and unzip it.
+2. Open `about:debugging#/runtime/this-firefox` and choose **Load Temporary Add-on…**.
+3. Select **`manifest.json`** inside the unzipped folder. Firefox removes temporary add-ons when it closes; repeat this step after restarting.
 
-The Firefox build lives in the [`firefox/`](firefox) folder of this repo.
+<details>
+<summary><strong>Manual install for Chrome, Edge, or Brave</strong></summary>
 
-## Usage
+1. Download the **non-Firefox ZIP** (`amex-offer-auto-adder-v…zip`) from the [latest GitHub release][release] and unzip it.
+2. Open `chrome://extensions`, `edge://extensions`, or `brave://extensions`, depending on your browser.
+3. Enable **Developer mode**, choose **Load unpacked**, and select the folder containing `manifest.json`.
 
-1. Log in to Amex (any page — the dashboard works).
-2. Click the extension icon.
-3. Click **Add offers now** for a one-off run, or flip **Auto-add on visit** on
-   to run automatically whenever you open an Amex page.
-4. Watch the toolbar status wheel and the on-page toast track progress. Open the
-   popup any time for stats and a per-card breakdown.
+The GitHub packages and the Chrome Web Store edition are released separately. Check the version on the download page you use.
 
-## How it works
-
-Your Amex data and offer processing run entirely client-side using your own
-session cookies (`credentials: "include"`) — no passwords, no tokens, and your
-account/offer data never leaves your browser.
-
-The only network call the extension makes to its own server is a single
-**pseudonymous install ping** (see [Privacy](#privacy)). Sideloaded builds also
-check GitHub for release updates; the store build uses Chrome's update service.
-
-1. `GET /api/servicing/v1/member` → every card's `account_token`.
-2. Per card, `POST ReadOffersHubPresentation.web.v1`
-   (`requestType: OFFERSHUB_LANDING`), walking pages until they run out, keeping
-   `offerType === "MERCHANT"` offers.
-3. Fetch already-added offers (`ADDEDTOCARD_LANDING`) and filter them out.
-4. For each remaining offer, `POST CreateOffersHubEnrollment.web.v1` with that
-   card's own `offerId`. Success = `status.purpose === "SUCCESS"`.
-
-Pacing is randomized (~0.25–0.7 s between offers); transient `5xx`/network
-errors retry a couple of times, and any `429/403/401` or non-JSON response stops
-the run immediately.
-
-## Configuration
-
-Tweak the `CFG` object at the top of [`content.js`](content.js):
-
-| Option                  | What it does                                   |
-| ----------------------- | ---------------------------------------------- |
-| `minDelay` / `maxDelay` | Delay range between offers (ms). Raise if throttled. |
-| `maxPages`              | Offer pages to walk per card.                  |
-| `maxRetries`            | Retries on transient (5xx/network) errors.     |
-| `maxEnroll`             | Safety cap on enrollments per run.             |
-
-## Troubleshooting
-
-Amex changes their internal endpoints from time to time. If nothing gets added:
-
-1. Open DevTools (F12) → **Console** on an Amex tab and look for `[AmexAutoAdd]`
-   logs — they show card counts, per-card offer counts, and any "blocked" state.
-2. In the **Network** tab, load the Offers page and compare the real requests to
-   `ReadOffersHubPresentation.web.v1` / `CreateOffersHubEnrollment.web.v1`
-   against the constants in `content.js`; update if they've changed.
-3. Reload the extension on `chrome://extensions`.
-
-## Project layout
-
-| File            | Purpose                                                |
-| --------------- | ------------------------------------------------------ |
-| `manifest.json` | MV3 manifest, permissions, icons                       |
-| `content.js`    | Reads cards & offers, enrolls, logs stats              |
-| `background.js` | Toolbar icon, animated status wheel, badge             |
-| `popup.html/js` | Popup UI: toggle, run button, stats & history          |
-| `icons/`        | Toolbar / extension icons                              |
+</details>
 
 ## Privacy
 
-- Your **Amex account and offer data never leave your browser** — all API calls
-  go directly to americanexpress.com from your session.
-- On **first install only**, the extension sends one anonymous ping to
-  `buza.dev` so the author can count installs. It contains a **random ID**
-  (generated locally, not linked to you), the extension version, and your
-  browser name. The server also records a timestamp and a country code when
-  available; hosting infrastructure receives ordinary IP/request metadata.
-  No Amex account data or browsing history are sent to the developer.
-- No install-measurement events are sent on updates, runs, or merchant visits.
+The extension uses your existing Amex session. It keeps offer details, card labels, account references, and enrollment history in your browser’s local extension storage. Enrollment requests go to **American Express**. Merchant matching happens locally; the developer does not receive your Amex account data, offers, or browsing history.
 
-See the full [privacy policy](PRIVACY.md) for storage, retention, and data use.
+On first install, `buza.dev` receives a random installation ID, extension version, and browser name to count installs. The server records a timestamp and a country code when available. The [privacy policy](PRIVACY.md) explains retention, network metadata, and what uninstalling removes.
 
-## Chrome Web Store preparation
+## Troubleshooting
 
-The store edition (v2.0.1) is now
-[available on Chrome Web Store](https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd).
-Run `node scripts/build-store.mjs` for the store-specific package and
-`node --test tests/offers.test.mjs` for enrollment/search regression checks.
-Listing copy, permission justifications, and reviewer instructions are in
-[`store/LISTING.md`](store/LISTING.md). The store package uses Chrome-managed
-updates and omits the sideloaded ZIP updater and its permissions.
+- **No reminder at a shop?** Check the last update in the popup and make sure **Merchant offer heads-up** is on. A reminder needs an unexpired offer in your cache that matches the site. If you previously hid the site permanently, use **Reset hidden sites** in the popup.
+- **Nothing loads from Amex?** Confirm you’re signed in, reload the Amex tab, and try again. If Amex rate-limits a run, wait before retrying.
+- **Still stuck?** [Report an issue][issues] with your browser, extension version, and what you expected to see. Omit card identifiers and account details from screenshots.
 
-## Disclaimer
+## Development
 
-For personal use on your own account. It automates undocumented American Express
-endpoints, which is against Amex's Terms of Service — use at your own risk. The
-extension is not affiliated with or endorsed by American Express.
+See the [developer guide](docs/DEVELOPMENT.md) for the enrollment flow, configuration, project layout, and build checks.
 
-Author: **Tyler Buza** · [buza.dev](https://buza.dev)
+Independent extension by **[Tyler Buza](https://buza.dev)** · [MIT license](LICENSE). Not affiliated with or endorsed by American Express. Intended for personal use on your own account; automation uses undocumented endpoints and may be restricted by Amex’s terms.
 
-## License
-
-[MIT](LICENSE)
+[store]: https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd
+[release]: https://github.com/TylerBuza/amex-offer-auto-adder/releases/latest
+[issues]: https://github.com/TylerBuza/amex-offer-auto-adder/issues
