@@ -7,12 +7,16 @@
 
 <p align="center">
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-006fcf">
-  <img alt="Chrome" src="https://img.shields.io/badge/Chrome%20%7C%20Edge%20%7C%20Brave-supported-2e9b3f">
+  <a href="https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd"><img alt="Install from Chrome Web Store" src="https://img.shields.io/badge/Chrome_Web_Store-Install-006fcf?logo=googlechrome&logoColor=white"></a>
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-none-lightgrey">
 </p>
 
 ---
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd"><b>Install from Chrome Web Store</b></a>
+</p>
 
 Amex Offers make you add each deal to your card one tile at a time — dozens of
 them, on every card. This extension does it all in one click by talking to
@@ -70,7 +74,7 @@ new** to each card.
 
 ### Chrome Web Store
 
-[Install from Chrome Web Store](https://chromewebstore.google.com/detail/binllhimembkpanceinpeogelljioehd),
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/amex-offer-auto-adder/binllhimembkpanceinpeogelljioehd),
 then pin the extension and sign in to Amex. Run **Add offers now** to cache your
 offers, and leave **Merchant offer heads-up** enabled for on-site reminders.
 
